@@ -32,19 +32,53 @@ export async function POST(request) {
     }
     const body = await request.json();
 
-    if (body.name && body.category && !body.title) {
-      const { name, category, iconKey, color } = body;
-      const skill = await prisma.skill.create({ data: { name, category, iconKey, color } });
+    if (body.entity === 'skill' || (body.name && body.category && !body.title)) {
+      const { name, category, iconKey, color, order } = body;
+      const skill = await prisma.skill.create({
+        data: {
+          name,
+          category,
+          iconKey: iconKey || null,
+          color: color || null,
+          order: typeof order === 'number' ? order : 0,
+        },
+      });
       return NextResponse.json(skill);
     }
-    if (body.title && body.description && body.content) {
-      const { title, slug, description, content, imageUrl, demoUrl, githubUrl, category, featured } = body;
-      const project = await prisma.project.create({ data: { title, slug, description, content, imageUrl, demoUrl, githubUrl, category, featured } });
+    if (body.entity === 'project' || (body.title && (body.slug || body.description) && !body.company)) {
+      const { title, slug, description, content, imageUrl, demoUrl, githubUrl, category, featured, order } = body;
+      const genSlug = (slug || title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const project = await prisma.project.create({
+        data: {
+          title,
+          slug: genSlug,
+          description: description || '',
+          content: content || null,
+          imageUrl: imageUrl || null,
+          demoUrl: demoUrl || null,
+          githubUrl: githubUrl || null,
+          category: category || 'web',
+          featured: Boolean(featured),
+          order: typeof order === 'number' ? order : 0,
+        },
+      });
       return NextResponse.json(project);
     }
-    if (body.title && body.company && !body.name) {
+    if (body.entity === 'experience' || (body.title && body.company && !body.name)) {
       const { title, company, location, startDate, endDate, isCurrent, description, tags, order } = body;
-      const entry = await prisma.experience.create({ data: { title, company, location, startDate, endDate, isCurrent, description, tags, order } });
+      const entry = await prisma.experience.create({
+        data: {
+          title,
+          company,
+          location: location || null,
+          startDate,
+          endDate: endDate || null,
+          isCurrent: Boolean(isCurrent),
+          description: description || '',
+          tags: Array.isArray(tags) ? tags : [],
+          order: typeof order === 'number' ? order : 0,
+        },
+      });
       return NextResponse.json(entry);
     }
     if (body.entity === 'contactMessage' && body.id) {
@@ -73,7 +107,22 @@ export async function PUT(request) {
       return NextResponse.json(skill);
     }
     if (entity === 'project') {
-      const project = await prisma.project.update({ where: { id }, data });
+      const { title, slug, description, content, imageUrl, demoUrl, githubUrl, category, featured, order } = data;
+      const project = await prisma.project.update({
+        where: { id },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(slug !== undefined && { slug: slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }),
+          ...(description !== undefined && { description }),
+          ...(content !== undefined && { content: content || null }),
+          ...(imageUrl !== undefined && { imageUrl: imageUrl || null }),
+          ...(demoUrl !== undefined && { demoUrl: demoUrl || null }),
+          ...(githubUrl !== undefined && { githubUrl: githubUrl || null }),
+          ...(category !== undefined && { category }),
+          ...(featured !== undefined && { featured: Boolean(featured) }),
+          ...(order !== undefined && { order: Number(order) }),
+        },
+      });
       return NextResponse.json(project);
     }
     if (entity === 'experience') {

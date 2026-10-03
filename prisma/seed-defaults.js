@@ -35,6 +35,10 @@ async function main() {
     { id: 'skill-notion', name: 'Notion', category: 'Tools & Productivity', color: '#F5F5F5' },
     { id: 'skill-git', name: 'Git', category: 'Tools & Productivity', color: '#F05032' },
     { id: 'skill-github', name: 'GitHub', category: 'Tools & Productivity', color: '#F5F5F5' },
+    { id: 'skill-office', name: 'MS Office', category: 'Soft Skills', color: '#0078D4' },
+    { id: 'skill-english', name: 'English speaking', category: 'Soft Skills', color: '#6366F1' },
+    { id: 'skill-indo', name: 'Indonesian (native)', category: 'Soft Skills', color: '#E70011' },
+    { id: 'skill-canva', name: 'Canva (basic editing)', category: 'Soft Skills', color: '#00C4CC' },
   ];
 
   for (const skill of defaultSkills) {
@@ -58,7 +62,51 @@ async function main() {
     });
   }
 
-  console.log('Done. Default skills and experiences seeded.');
+  const defaultProjects = [
+    {
+      id: 'proj-ecommerce',
+      title: 'E-Commerce Analytics Platform',
+      slug: 'ecommerce-analytics',
+      description: 'Real-time sales dashboard with inventory management, automated reports, and webhooks.',
+      category: 'web',
+      featured: true,
+      demoUrl: 'https://demo.example.com',
+      githubUrl: 'https://github.com/example/ecommerce-analytics',
+      order: 1,
+    },
+    {
+      id: 'proj-qa-suite',
+      title: 'QA Automated Testing Pipeline',
+      slug: 'qa-automated-suite',
+      description: 'End-to-end regression and API testing framework using Cypress, Playwright, and GitHub Actions.',
+      category: 'qa',
+      featured: true,
+      demoUrl: 'https://demo.example.com',
+      githubUrl: 'https://github.com/example/qa-suite',
+      order: 2,
+    },
+    {
+      id: 'proj-pm-sprint',
+      title: 'Sprint Tracking & Jira Sync',
+      slug: 'sprint-tracking-jira',
+      description: 'Agile project tracker with automated sprint velocity metrics and Jira bidirectional sync.',
+      category: 'pm',
+      featured: false,
+      demoUrl: 'https://demo.example.com',
+      githubUrl: 'https://github.com/example/sprint-tracker',
+      order: 3,
+    },
+  ];
+
+  for (const proj of defaultProjects) {
+    await prisma.project.upsert({
+      where: { id: proj.id },
+      update: proj,
+      create: proj,
+    });
+  }
+
+  console.log('Done. Default skills, experiences, and projects seeded.');
 }
 
 main().catch(e => { console.error(e); process.exit(1); }).finally(async () => await prisma.$disconnect());

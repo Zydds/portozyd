@@ -28,17 +28,17 @@ export default function AdminSidebar() {
   return (
     <aside style={{
       width: '260px',
-      backgroundColor: 'var(--bg-secondary)',
-      borderRight: '1px solid var(--border-subtle)',
+      backgroundColor: 'var(--bg-raised, #131316)',
+      borderRight: '1px solid var(--border-strong, #33333a)',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
       position: 'sticky',
       top: 0,
     }}>
-      <div style={{ padding: '24px', borderBottom: '1px solid var(--border-subtle)' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-          ZGA Admin
+      <div style={{ padding: '24px', borderBottom: '1px solid var(--border-strong, #33333a)' }}>
+        <h2 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 600, fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+          ZYD Admin
         </h2>
       </div>
 
@@ -58,13 +58,13 @@ export default function AdminSidebar() {
                 textDecoration: 'none',
                 fontSize: '0.875rem',
                 fontWeight: 500,
-                color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                backgroundColor: isActive ? 'var(--accent-ghost)' : 'transparent',
+                color: isActive ? '#fff' : 'var(--text-secondary)',
+                backgroundColor: isActive ? 'var(--accent, #3A4CFF)' : 'transparent',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                  e.currentTarget.style.backgroundColor = 'var(--bg, #0B0B0D)';
                   e.currentTarget.style.color = 'var(--text-primary)';
                 }
               }}

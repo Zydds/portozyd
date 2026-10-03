@@ -14,10 +14,15 @@ export default function Home() {
       <Header />
       <main style={{ paddingTop: '64px' }}>
         <HeroSection />
+        <div className="wrap"><div className="divider"></div></div>
         <AboutSection />
+        <div className="wrap"><div className="divider"></div></div>
         <ExperienceSection />
+        <div className="wrap"><div className="divider"></div></div>
         <SkillsSection />
+        <div className="wrap"><div className="divider"></div></div>
         <PortfolioSection />
+        <div className="wrap"><div className="divider"></div></div>
         <ContactSection />
       </main>
       <Footer />

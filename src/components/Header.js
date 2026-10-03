@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { RiArrowDownSLine } from 'react-icons/ri';
-import ThemeToggle from '@/components/ThemeToggle';
+import { RiArrowDownSLine, RiSunLine, RiMoonLine } from 'react-icons/ri';
+import { useTheme } from '@/components/ThemeProvider';
 
 const portfolioLinks = [
   { label: 'All Projects', href: '#portfolio' },
@@ -22,42 +22,38 @@ const hobbiesLinks = [
 
 function Dropdown({ label, items }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  useEffect(() => {
-    function handleKey(e) {
-      if (e.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={containerRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen(prev => !prev)}
         aria-expanded={open}
         aria-haspopup="true"
+        type="button"
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: '4px',
-          fontSize: '0.875rem',
+          gap: '5px',
+          fontSize: '0.92rem',
           fontWeight: 500,
           color: open ? 'var(--text-primary)' : 'var(--text-secondary)',
-          background: 'none',
+          background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          padding: '8px 0',
-          fontFamily: 'inherit',
+          padding: '4px 0',
+          fontFamily: 'var(--font-spectral)',
+          fontStyle: 'italic',
           transition: 'color 0.15s ease',
         }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
@@ -65,28 +61,28 @@ function Dropdown({ label, items }) {
       >
         {label}
         <RiArrowDownSLine
-          size={16}
+          size={15}
           style={{
             transition: 'transform 0.2s ease',
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            opacity: 0.75,
           }}
         />
       </button>
 
       {open && (
         <div
-          className="dropdown-enter"
-          role="menu"
           style={{
             position: 'absolute',
-            top: 'calc(100% + 8px)',
-            left: '-16px',
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-default)',
-            borderRadius: '8px',
-            padding: '8px',
-            minWidth: '200px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+            top: 'calc(100% + 12px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            minWidth: '190px',
+            background: 'var(--bg-raised)',
+            border: '1px solid var(--border-strong)',
+            borderRadius: '6px',
+            padding: '6px',
+            boxShadow: '0 12px 28px rgba(0,0,0,0.25)',
             zIndex: 100,
           }}
         >
@@ -94,20 +90,21 @@ function Dropdown({ label, items }) {
             <Link
               key={item.href}
               href={item.href}
-              role="menuitem"
               onClick={() => setOpen(false)}
               style={{
                 display: 'block',
                 padding: '8px 12px',
                 borderRadius: '4px',
-                fontSize: '0.875rem',
+                fontSize: '0.85rem',
                 color: 'var(--text-secondary)',
+                fontFamily: 'var(--font-spectral)',
+                fontStyle: 'italic',
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'var(--bg-tertiary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
+                e.currentTarget.style.background = 'rgba(58, 76, 255, 0.12)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = 'transparent';
@@ -124,81 +121,79 @@ function Dropdown({ label, items }) {
 }
 
 export default function Header() {
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const isHome = pathname === '/';
 
-  const navLinkStyle = {
-    fontSize: '0.875rem',
-    fontWeight: 500,
+  const linkStyle = {
+    fontFamily: 'var(--font-spectral)',
+    fontStyle: 'italic',
+    fontSize: '0.92rem',
     color: 'var(--text-secondary)',
     textDecoration: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '4px 0',
     transition: 'color 0.15s ease',
   };
 
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 50,
-      backdropFilter: 'blur(12px)',
-      background: 'rgba(10,10,10,0.8)',
-      borderBottom: '1px solid var(--border-subtle)',
-      height: '64px',
-    }}>
-      <div style={{
-        maxWidth: '1280px',
-        margin: '0 auto',
-        padding: '0 32px',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <Link
-          href="/"
-          style={{
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            color: 'var(--text-primary)',
-            textDecoration: 'none',
-            transition: 'color 0.15s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-        >
-          ZGA
-        </Link>
-
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-          <Link href={isHome ? '#home' : '/'} style={navLinkStyle}
+    <nav className="site-nav">
+      <Link href="/" className="logo" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center' }}>
+        ZYD
+      </Link>
+      <ul className="navlinks" style={{ display: 'flex', alignItems: 'center', gap: '28px', listStyle: 'none', margin: 0, padding: 0 }}>
+        <li>
+          <Link
+            href={isHome ? '#home' : '/'}
+            style={linkStyle}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
             Home
           </Link>
-          <Link href={isHome ? '#about' : '/#about'} style={navLinkStyle}
+        </li>
+        <li>
+          <Link
+            href={isHome ? '#about' : '/#about'}
+            style={linkStyle}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
             About
           </Link>
-          <Link href={isHome ? '#skills' : '/#skills'} style={navLinkStyle}
+        </li>
+        <li>
+          <Link
+            href={isHome ? '#skills' : '/#skills'}
+            style={linkStyle}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
             Skills
           </Link>
-          <Dropdown label="Portfolio" items={portfolioLinks} />
-          <Dropdown label="Hobbies" items={hobbiesLinks} />
-          <Link href={isHome ? '#contact' : '/#contact'} style={navLinkStyle}
+        </li>
+        <li><Dropdown label="Portfolio" items={portfolioLinks} /></li>
+        <li><Dropdown label="Hobbies" items={hobbiesLinks} /></li>
+        <li>
+          <Link
+            href={isHome ? '#contact' : '/#contact'}
+            style={linkStyle}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
             Contact
           </Link>
-        </nav>
-
-        <ThemeToggle />
-      </div>
-    </header>
+        </li>
+      </ul>
+      <button
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="theme-toggle"
+        type="button"
+      >
+        {theme === 'dark' ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
+      </button>
+    </nav>
   );
 }
