@@ -1,31 +1,36 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { RiMailLine, RiGithubLine, RiLinkedinLine, RiMapPinLine } from 'react-icons/ri';
 
-const contactInfo = [
+const defaultInfo = [
   {
     icon: RiMailLine,
     label: 'Email',
-    value: 'zaidan.azhar@example.com',
-    href: 'mailto:zaidan.azhar@example.com',
+    value: 'contact@zaidanghiffari.my.id',
+    href: 'mailto:contact@zaidanghiffari.my.id',
+    key: 'email',
   },
   {
     icon: RiGithubLine,
     label: 'GitHub',
     value: 'github.com/zaidanazhar',
     href: 'https://github.com/zaidanazhar',
+    key: 'github',
   },
   {
     icon: RiLinkedinLine,
     label: 'LinkedIn',
     value: 'linkedin.com/in/zaidanazhar',
     href: 'https://linkedin.com/in/zaidanazhar',
+    key: 'linkedin',
   },
   {
     icon: RiMapPinLine,
     label: 'Location',
     value: 'Jakarta, Indonesia',
     href: null,
+    key: 'location',
   },
 ];
 
@@ -43,126 +48,265 @@ const inputStyle = {
 };
 
 export default function ContactSection() {
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [contactList, setContactList] = useState(defaultInfo);
+  const [contactIntro, setContactIntro] = useState("Whether you have a question about QA testing, web development projects, or project management methodologies, feel free to drop a message.");
+
+  useEffect(() => {
+    // Fetch profile
+    fetch('/api/profile')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.profile) {
+          const p = data.profile;
+          setContactList([
+            {
+              icon: RiMailLine,
+              label: 'Email',
+              value: p.email || defaultInfo[0].value,
+              href: p.email ? `mailto:${p.email}` : defaultInfo[0].href,
+            },
+            {
+              icon: RiGithubLine,
+              label: 'GitHub',
+              value: p.github ? p.github.replace(/^https?:\/\//, '') : defaultInfo[1].value,
+              href: p.github || defaultInfo[1].href,
+            },
+            {
+              icon: RiLinkedinLine,
+              label: 'LinkedIn',
+              value: p.linkedin ? p.linkedin.replace(/^https?:\/\//, '') : defaultInfo[2].value,
+              href: p.linkedin || defaultInfo[2].href,
+            },
+            {
+              icon: RiMapPinLine,
+              label: 'Location',
+              value: p.location || defaultInfo[3].value,
+              href: null,
+            },
+          ]);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch details copy
+    fetch('/api/details')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.details?.contact_intro) {
+          setContactIntro(data.details.contact_intro);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setStatus(null);
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <section id="contact" style={{ padding: '96px 32px' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <h2 style={{
           fontSize: '1.875rem',
           fontWeight: 600,
-          marginBottom: '16px',
+          marginBottom: '64px',
           textAlign: 'center',
+          color: 'var(--text-primary)',
         }}>
           Get In Touch
         </h2>
-        <p style={{
-          fontSize: '1rem',
-          color: 'var(--text-secondary)',
-          textAlign: 'center',
-          marginBottom: '64px',
-        }}>
-          Have a project in mind or want to collaborate? Let&apos;s connect.
-        </p>
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '48px',
+          alignItems: 'start',
         }}>
-          {/* Contact Info */}
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '24px' }}>
-              Contact Information
+          {/* Left Column — Contact Information */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Let&apos;s Connect
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {contactInfo.map(({ icon: Icon, label, value, href }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <Icon size={22} color="var(--accent-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
-                      {label}
+            <p style={{
+              fontSize: '0.9375rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.7,
+            }}>
+              {contactIntro}
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+              {contactList.map((item, index) => {
+                const Icon = item.icon;
+                const content = (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    padding: '12px 16px',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    transition: 'border-color 0.15s ease',
+                  }}>
+                    <Icon size={20} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {item.label}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, marginTop: '2px' }}>
+                        {item.value}
+                      </div>
                     </div>
-                    {href ? (
-                      <a href={href}
-                        target={href.startsWith('http') ? '_blank' : undefined}
-                        rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                        style={{ fontSize: '0.9375rem', color: 'var(--accent-primary)', textDecoration: 'none' }}
-                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-hover)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                      >
-                        {value}
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{value}</span>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+
+                if (item.href) {
+                  return (
+                    <a
+                      key={index}
+                      href={item.href}
+                      target={item.href.startsWith('http') ? '_blank' : undefined}
+                      rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      style={{ textDecoration: 'none' }}
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return <div key={index}>{content}</div>;
+              })}
             </div>
           </div>
 
-          {/* Contact Form */}
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '24px' }}>
-              Send a Message
-            </h3>
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {[
-                { id: 'name', label: 'Name', type: 'text', placeholder: 'Your name' },
-                { id: 'email', label: 'Email', type: 'email', placeholder: 'your.email@example.com' },
-                { id: 'subject', label: 'Subject', type: 'text', placeholder: "What's this about?" },
-              ].map(({ id, label, type, placeholder }) => (
-                <div key={id}>
-                  <label htmlFor={id} style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--text-secondary)',
-                    marginBottom: '8px',
-                  }}>
-                    {label}
-                  </label>
-                  <input id={id} type={type} placeholder={placeholder} required style={inputStyle}
-                    onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.background = 'var(--bg-secondary)'; }}
-                    onBlur={e => { e.target.style.borderColor = 'var(--border-subtle)'; e.target.style.background = 'var(--bg-tertiary)'; }}
-                  />
-                </div>
-              ))}
-
+          {/* Right Column — Contact Form */}
+          <div style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            padding: '32px',
+          }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label htmlFor="message" style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--text-secondary)',
-                  marginBottom: '8px',
-                }}>
-                  Message
+                <label htmlFor="name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  Name
                 </label>
-                <textarea id="message" required placeholder="Tell me about your project or idea..."
-                  style={{ ...inputStyle, resize: 'vertical', minHeight: '120px' }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--accent-primary)'; e.target.style.background = 'var(--bg-secondary)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border-subtle)'; e.target.style.background = 'var(--bg-tertiary)'; }}
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  placeholder="Your Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  style={inputStyle}
                 />
               </div>
 
-              <button type="submit" style={{
-                width: '100%',
-                background: 'var(--accent-primary)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '12px 24px',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                transition: 'background 0.15s ease',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-primary)'; }}
+              <div>
+                <label htmlFor="email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="subject" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  Subject
+                </label>
+                <input
+                  id="subject"
+                  type="text"
+                  required
+                  placeholder="What is this about?"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="message" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  required
+                  rows={4}
+                  placeholder="Your message..."
+                  value={formData.message}
+                  onChange={handleChange}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={sending}
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '12px 24px',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: sending ? 'not-allowed' : 'pointer',
+                  opacity: sending ? 0.7 : 1,
+                  transition: 'opacity 0.15s ease',
+                  marginTop: '8px',
+                }}
               >
-                Send Message
+                {sending ? 'Sending...' : 'Send Message'}
               </button>
+
+              {status === 'success' && (
+                <p style={{ fontSize: '0.875rem', color: 'var(--success)', marginTop: '4px' }}>
+                  Thank you! Your message has been sent successfully.
+                </p>
+              )}
+              {status === 'error' && (
+                <p style={{ fontSize: '0.875rem', color: 'var(--error)', marginTop: '4px' }}>
+                  Something went wrong. Please try again later.
+                </p>
+              )}
             </form>
           </div>
         </div>

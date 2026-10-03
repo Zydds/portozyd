@@ -1,143 +1,99 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-
-const topicData = {
-  qa: {
-    title: 'Quality Assurance',
-    icon: '🛡️',
-    intro: 'Ensuring software reliability, performance, and seamless user experiences through rigorous testing methodologies.',
-    focusItems: [
-      'Test Plan Design & Documentation',
-      'Automated End-to-End Testing',
-      'Bug Tracking & Detailed Reports',
-      'Usability & Edge Case Testing',
-      'Continuous Quality Improvement',
-    ],
-    toolsItems: [
-      'Cypress & Playwright (E2E Testing)',
-      'Postman (API Testing)',
-      'Jest & React Testing Library',
-      'CI/CD Pipeline Integration',
-      'Browser DevTools & Debugging',
-    ],
-  },
-  webdev: {
-    title: 'Web Development',
-    icon: '💻',
-    intro: 'Building modern, scalable, and responsive web applications with a focus on clean code and robust architecture.',
-    focusItems: [
-      'Component-Based Architecture',
-      'Responsive & Accessible UI/UX',
-      'State Management & Data Flow',
-      'SEO & Performance Optimization',
-      'Clean, Maintainable Code',
-    ],
-    toolsItems: [
-      'React, Next.js & Vue',
-      'Tailwind CSS & Styled Components',
-      'Node.js & Express',
-      'RESTful APIs & GraphQL',
-      'Git, GitHub & Version Control',
-    ],
-  },
-  pm: {
-    title: 'Project Management',
-    icon: '📊',
-    intro: 'Orchestrating teams, workflows, and resources to deliver high-quality software products on time and within budget.',
-    focusItems: [
-      'Agile & Scrum Methodologies',
-      'Requirements Gathering & Scoping',
-      'Risk Management & Mitigation',
-      'Cross-Functional Team Collaboration',
-      'Stakeholder Communication',
-    ],
-    toolsItems: [
-      'Jira & Confluence',
-      'Notion & Trello',
-      'Asana & Monday.com',
-      'Gantt Charts & Roadmapping',
-      'Slack, Teams & Zoom',
-    ],
-  },
-  gaming: {
-    title: 'Gaming',
-    icon: '🎮',
-    intro: 'Exploring virtual worlds, competitive strategies, and the technology that powers modern interactive entertainment.',
-    focusItems: [
-      'Strategy & Tactical Gameplay',
-      'Community Building & Moderation',
-      'Game Mechanics Analysis',
-      'Hardware Setup & Optimization',
-      'Esports & Competitive Scene',
-    ],
-    toolsItems: [
-      'Discord (Server Management)',
-      'OBS Studio (Streaming)',
-      'Steam & Battle.net',
-      'Custom PC Building',
-      'Performance Tuning (Overclocking)',
-    ],
-  },
-  others: {
-    title: 'Other Interests',
-    icon: '🌌',
-    intro: 'A collection of hobbies, explorations, and continuous learning adventures beyond code and quality assurance.',
-    focusItems: [
-      'Continuous Learning & Skill Acquisition',
-      'Technology & Gadget Exploration',
-      'Creative Writing & Blogging',
-      'Productivity Systems & Workflows',
-      'Open Source Contributions',
-    ],
-    toolsItems: [
-      'Notion & Obsidian (PKM)',
-      'Raspberry Pi & Home Automation',
-      'Markdown & Static Site Generators',
-      'Podcasts & Tech Newsletters',
-      'Various Productivity Frameworks',
-    ],
-  },
-};
-
-const inputStyle = {
-  width: '100%',
-  background: 'var(--bg-tertiary)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: '6px',
-  padding: '10px 12px',
-  fontSize: '0.875rem',
-  fontFamily: 'inherit',
-  color: 'var(--text-primary)',
-  outline: 'none',
-};
-
-const labelStyle = {
-  display: 'block',
-  fontSize: '0.875rem',
-  fontWeight: 500,
-  color: 'var(--text-secondary)',
-  marginBottom: '8px',
-};
 
 export default function TopicEditorPage({ params }) {
   const router = useRouter();
-  const slug = params.slug;
-  const data = topicData[slug] || {};
+  const resolvedParams = use(params);
+  const slug = resolvedParams?.slug;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
 
   const [formData, setFormData] = useState({
-    title: data.title || '',
-    icon: data.icon || '',
-    intro: data.intro || '',
-    focusItems: data.focusItems?.join('\n') || '',
-    toolsItems: data.toolsItems?.join('\n') || '',
+    title: '',
+    icon: '',
+    intro: '',
+    focusItems: '',
+    toolsItems: '',
+    highlights: '',
   });
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (!slug) return;
+    async function fetchTopic() {
+      try {
+        const res = await fetch(`/api/topics/${slug}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFormData({
+            title: data.title || '',
+            icon: data.icon || '',
+            intro: data.intro || '',
+            focusItems: data.focusItems?.join('\n') || '',
+            toolsItems: data.toolsItems?.join('\n') || '',
+            highlights: data.highlights?.join('\n') || '',
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch topic:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTopic();
+  }, [slug]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Save functionality will be connected in Phase 2 (database integration)');
+    if (!slug) return;
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const res = await fetch(`/api/admin/topics/${slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setMessage('✅ Saved successfully to Neon PostgreSQL database!');
+      } else {
+        setMessage('❌ Error saving changes.');
+      }
+    } catch (err) {
+      setMessage('❌ Failed to connect to server.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const inputStyle = {
+    width: '100%',
+    backgroundColor: 'var(--bg-tertiary)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: '6px',
+    padding: '10px 12px',
+    fontSize: '0.875rem',
+    fontFamily: 'inherit',
+    color: 'var(--text-primary)',
+    outline: 'none',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: 'var(--text-secondary)',
+    marginBottom: '8px',
+  };
+
+  if (loading) {
+    return <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>Loading topic data...</div>;
+  }
 
   return (
     <div style={{ padding: '32px', maxWidth: '900px', width: '100%' }}>
@@ -158,12 +114,26 @@ export default function TopicEditorPage({ params }) {
             marginBottom: '16px',
           }}
         >
-          ← Back
+          ← Back to Topics
         </button>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-          Edit Topic: {formData.title}
+          Edit Topic: {formData.title || slug}
         </h1>
       </div>
+
+      {message && (
+        <div style={{
+          padding: '12px 16px',
+          borderRadius: '6px',
+          backgroundColor: message.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${message.includes('✅') ? 'var(--success)' : 'var(--error)'}`,
+          color: message.includes('✅') ? 'var(--success)' : 'var(--error)',
+          marginBottom: '24px',
+          fontSize: '0.875rem',
+        }}>
+          {message}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div>
@@ -205,18 +175,29 @@ export default function TopicEditorPage({ params }) {
             id="focusItems"
             value={formData.focusItems}
             onChange={(e) => setFormData({ ...formData, focusItems: e.target.value })}
-            rows={6}
+            rows={5}
             style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
 
         <div>
-          <label htmlFor="toolsItems" style={labelStyle}>Tools & Technologies (one per line)</label>
+          <label htmlFor="toolsItems" style={labelStyle}>Tools &amp; Technologies (one per line)</label>
           <textarea
             id="toolsItems"
             value={formData.toolsItems}
             onChange={(e) => setFormData({ ...formData, toolsItems: e.target.value })}
-            rows={6}
+            rows={5}
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="highlights" style={labelStyle}>Highlighted Projects (one per line)</label>
+          <textarea
+            id="highlights"
+            value={formData.highlights}
+            onChange={(e) => setFormData({ ...formData, highlights: e.target.value })}
+            rows={4}
             style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
@@ -224,48 +205,21 @@ export default function TopicEditorPage({ params }) {
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
             type="submit"
+            disabled={saving}
             style={{
               padding: '12px 24px',
               fontSize: '0.875rem',
               fontWeight: 500,
               color: 'white',
-              background: 'var(--accent-primary)',
+              backgroundColor: 'var(--accent-primary)',
               border: 'none',
               borderRadius: '6px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.7 : 1,
             }}
           >
-            Save Changes
+            {saving ? 'Saving...' : 'Save to Database'}
           </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{
-              padding: '12px 24px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-              background: 'transparent',
-              border: '1px solid var(--border-default)',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-
-        <div style={{
-          padding: '16px',
-          background: 'var(--accent-ghost)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '6px',
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)',
-        }}>
-          💡 Note: This is a UI prototype. Save functionality will be connected to the database in Phase 2.
         </div>
       </form>
     </div>

@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import { 
   RiDashboardLine, RiFolder2Line, RiUserLine, 
   RiBriefcaseLine, RiToolsLine, RiPriceTag3Line, 
-  RiImageLine, RiInboxLine, RiSettings4Line, RiArrowLeftLine 
+  RiImageLine, RiInboxLine, RiSettings4Line, RiArrowLeftLine,
+  RiFileTextLine
 } from 'react-icons/ri';
 
 const navItems = [
@@ -14,6 +15,7 @@ const navItems = [
   { label: 'Profile', href: '/admin/profile', icon: RiUserLine },
   { label: 'Experience', href: '/admin/experience', icon: RiBriefcaseLine },
   { label: 'Skills', href: '/admin/skills', icon: RiToolsLine },
+  { label: 'Details', href: '/admin/details', icon: RiFileTextLine },
   { label: 'Topics', href: '/admin/topics', icon: RiPriceTag3Line },
   { label: 'Media', href: '/admin/media', icon: RiImageLine },
   { label: 'Inbox', href: '/admin/inbox', icon: RiInboxLine },

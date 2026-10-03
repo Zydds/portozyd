@@ -1,18 +1,20 @@
 'use client';
 
-const experiences = [
+import { useEffect, useState } from 'react';
+
+const placeholderExperiences = [
   {
     title: 'Software Developer Intern',
     company: '[Company Name]',
-    date: '[Month Year] – [Month Year]',
-    description: '[Describe your internship responsibilities, what you built, and the impact you made.]',
+    date: 'Sep 2024 – Dec 2024',
+    description: 'Describe your internship responsibilities, what you built, and the impact you made.',
     tags: ['React', 'Next.js', 'Tailwind CSS'],
   },
   {
     title: 'Freelance Landing Page Designer',
     company: 'Self-Employed',
-    date: '[Month Year] – [Month Year]',
-    description: '[Describe your freelance work — clients, projects delivered, tools used, and outcomes.]',
+    date: 'Jan 2025 – Present',
+    description: 'Describe your freelance work — clients, projects delivered, tools used, and outcomes.',
     tags: ['WordPress', 'Laravel', 'PHP'],
   },
 ];
@@ -71,28 +73,50 @@ function TimelineItem({ title, company, date, description, tags, isLast }) {
       </p>
 
       {/* Tags */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-        {tags.map(tag => (
-          <span
-            key={tag}
-            style={{
-              fontSize: '0.75rem',
-              padding: '4px 10px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: '4px',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+      {tags && tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {tags.map(tag => (
+            <span
+              key={tag}
+              style={{
+                fontSize: '0.75rem',
+                padding: '4px 10px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '4px',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function ExperienceSection() {
+  const [items, setItems] = useState(placeholderExperiences);
+
+  useEffect(() => {
+    fetch('/api/admin/crud')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.experiences && data.experiences.length > 0) {
+          const mapped = data.experiences.map(e => ({
+            title: e.title,
+            company: e.company,
+            date: `${e.startDate} – ${e.isCurrent ? 'Present' : (e.endDate || 'Present')}`,
+            description: e.description,
+            tags: e.tags || [],
+          }));
+          setItems(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="experience" style={{ padding: '96px 32px' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -117,11 +141,11 @@ export default function ExperienceSection() {
             background: 'var(--border-default)',
           }} />
 
-          {experiences.map((exp, i) => (
+          {items.map((exp, i) => (
             <TimelineItem
               key={i}
               {...exp}
-              isLast={i === experiences.length - 1}
+              isLast={i === items.length - 1}
             />
           ))}
         </div>

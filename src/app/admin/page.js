@@ -1,8 +1,18 @@
-export default function AdminDashboard() {
+import { prisma } from '@/lib/prisma';
+
+export const revalidate = 0; // Fetch fresh data on every request
+
+export default async function AdminDashboard() {
+  const [projectCount, topicCount, messageCount] = await Promise.all([
+    prisma.project.count(),
+    prisma.topicPage.count(),
+    prisma.contactMessage.count(),
+  ]);
+
   const stats = [
-    { label: 'Projects', value: 0 },
-    { label: 'Topic Pages', value: 5 },
-    { label: 'Messages', value: 0 },
+    { label: 'Projects', value: projectCount },
+    { label: 'Topic Pages', value: topicCount },
+    { label: 'Messages', value: messageCount },
   ];
 
   return (
@@ -39,8 +49,7 @@ export default function AdminDashboard() {
           Welcome to your CMS
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-          This is the admin dashboard shell. From here you can manage your portfolio content.
-          Currently, this is a UI prototype. In Phase 2, this will be connected to a PostgreSQL database.
+          Your CMS is connected to Neon PostgreSQL. Managing content across projects, topic pages, and inbox messages will update this dashboard in real-time.
         </p>
       </div>
     </div>

@@ -1,13 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { RiGithubLine, RiLinkedinLine, RiMailLine } from 'react-icons/ri';
-
-const socialLinks = [
-  { icon: RiGithubLine, href: 'https://github.com/zaidanazhar', label: 'GitHub' },
-  { icon: RiLinkedinLine, href: 'https://linkedin.com/in/zaidanazhar', label: 'LinkedIn' },
-  { icon: RiMailLine, href: 'mailto:zaidan.azhar@example.com', label: 'Email' },
-];
 
 const quickLinks = [
   { label: 'About', href: '#about' },
@@ -31,6 +26,40 @@ const linkStyle = {
 };
 
 export default function Footer() {
+  const [footerQuote, setFooterQuote] = useState("Building reliable software and quality-driven web experiences. Always learning, always improving.");
+  const [socialLinks, setSocialLinks] = useState([
+    { icon: RiGithubLine, href: 'https://github.com/zaidanazhar', label: 'GitHub' },
+    { icon: RiLinkedinLine, href: 'https://linkedin.com/in/zaidanazhar', label: 'LinkedIn' },
+    { icon: RiMailLine, href: 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
+  ]);
+
+  useEffect(() => {
+    // Fetch footer quote copy
+    fetch('/api/details')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.details?.footer_quote) {
+          setFooterQuote(data.details.footer_quote);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic profile links
+    fetch('/api/profile')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.profile) {
+          const p = data.profile;
+          setSocialLinks([
+            { icon: RiGithubLine, href: p.github || 'https://github.com/zaidanazhar', label: 'GitHub' },
+            { icon: RiLinkedinLine, href: p.linkedin || 'https://linkedin.com/in/zaidanazhar', label: 'LinkedIn' },
+            { icon: RiMailLine, href: p.email ? `mailto:${p.email}` : 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
+          ]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer style={{
       borderTop: '1px solid var(--border-subtle)',
@@ -59,8 +88,7 @@ export default function Footer() {
               ZGA
             </Link>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Building reliable software and quality-driven web experiences.
-              Always learning, always improving.
+              {footerQuote}
             </p>
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               {socialLinks.map(({ icon: Icon, href, label }) => (
@@ -125,8 +153,8 @@ export default function Footer() {
               {exploreLinks.map(({ label, href }) => (
                 <li key={label}>
                   <Link href={href} style={linkStyle}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+                    onMouseEnter={e => { e.currentTarget.color = 'var(--accent-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.color = 'var(--text-secondary)'; }}>
                     {label}
                   </Link>
                 </li>
