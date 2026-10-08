@@ -106,3 +106,18 @@ model SiteDetail {
   updatedAt   DateTime @updatedAt
 }
 
+// Denied probes hitting the admin surface (see proxy.js IP gate / origin check).
+model ProbeLog {
+  id        String   @id @default(cuid())
+  ip        String
+  path      String
+  method    String
+  status    Int
+  action    String   // redirect (human 302 -> /flag/) | block (bot 404) | origin (cross-origin 404)
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([ip])
+}
+

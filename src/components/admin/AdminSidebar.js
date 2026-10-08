@@ -6,7 +6,7 @@ import {
   RiDashboardLine, RiFolder2Line, RiUserLine, 
   RiBriefcaseLine, RiToolsLine, RiPriceTag3Line, 
   RiImageLine, RiInboxLine, RiSettings4Line, RiArrowLeftLine,
-  RiFileTextLine
+  RiFileTextLine, RiShieldLine
 } from 'react-icons/ri';
 
 const navItems = [
@@ -19,6 +19,7 @@ const navItems = [
   { label: 'Topics', href: '/admin/topics', icon: RiPriceTag3Line },
   { label: 'Media', href: '/admin/media', icon: RiImageLine },
   { label: 'Inbox', href: '/admin/inbox', icon: RiInboxLine },
+  { label: 'Threats', href: '/admin/threats', icon: RiShieldLine },
   { label: 'Settings', href: '/admin/settings', icon: RiSettings4Line },
 ];
 

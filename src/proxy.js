@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 const MUTATION_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const GATE_COOKIE = 'admin_gate';
@@ -34,6 +35,25 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
+// Fire-and-forget: threat board recording for denied probes. Never blocks or
+// fails the response; UA and path are truncated before storage.
+function recordProbe(req, action, status, event) {
+  const ua = (req.headers.get('user-agent') || '').slice(0, 300) || null;
+  const p = prisma.probeLog
+    .create({
+      data: {
+        ip: getClientIp(req) || 'unknown',
+        path: req.nextUrl.pathname.slice(0, 500),
+        method: req.method,
+        status,
+        action,
+        userAgent: ua,
+      },
+    })
+    .catch(() => {});
+  if (event && typeof event.waitUntil === 'function') event.waitUntil(p);
+}
+
 // Returns { deny } (send it) or { pass, tokenCookie } where tokenCookie is the
 // secret to persist when access was granted via ?k=.
 function enforceIpGate(req) {
@@ -65,12 +85,12 @@ function enforceIpGate(req) {
     if (pass) return { pass: true, tokenCookie };
 
     if (isBot(req)) {
-      return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }) };
+      return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
     }
-    return { deny: NextResponse.redirect(new URL('/flag/', req.nextUrl), 302) };
+    return { deny: NextResponse.redirect(new URL('/flag/', req.nextUrl), 302), action: 'redirect', status: 302 };
   } catch {
     // Fail-closed: any error in the gate denies the request.
-    return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }) };
+    return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
   }
 }
 
@@ -103,14 +123,18 @@ function isSameOrigin(req) {
   }
 }
 
-export default auth((req) => {
+export default auth((req, event) => {
   const path = req.nextUrl.pathname;
 
   const gate = enforceIpGate(req);
-  if (gate.deny) return gate.deny;
+  if (gate.deny) {
+    recordProbe(req, gate.action, gate.status, event);
+    return gate.deny;
+  }
 
   if (path.startsWith('/api/admin/') && MUTATION_METHODS.includes(req.method) && !isSameOrigin(req)) {
     // 404 (not 403) so unprobed endpoints don't confirm their existence.
+    recordProbe(req, 'origin', 404, event);
     return NextResponse.json({ error: 'Not Found' }, { status: 404 });
   }
 
