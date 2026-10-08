@@ -1,5 +1,3 @@
-'use client';
-
 const defaultParagraphs = {
   about_p1: "I'm a software quality advocate and web developer based in Indonesia. My journey started with curiosity about how things work behind the scenes, which led me to QA and full-stack development.",
   about_p2: "I build reliable, user-friendly web applications while making sure every detail meets high standards, from automated test suites to responsive interfaces.",

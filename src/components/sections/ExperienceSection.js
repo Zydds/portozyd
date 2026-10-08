@@ -1,5 +1,3 @@
-'use client';
-
 export default function ExperienceSection({ experiences = [] }) {
   const items = experiences.map(e => ({
     title: e.title,

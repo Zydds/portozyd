@@ -1,5 +1,3 @@
-'use client';
-
 import SkillIcon from '@/components/SkillIcon';
 
 const placeholderCategories = [
