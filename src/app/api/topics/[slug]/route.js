@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Public read-only endpoint: safe to cache (topic pages use the same 60s ISR window).
+const PUBLIC_CACHE = 'public, max-age=60, s-maxage=60, stale-while-revalidate=300';
+
 export async function GET(request, { params }) {
   try {
+    const resolvedParams = await params;
     const topic = await prisma.topicPage.findUnique({
-      where: { slug: params.slug },
+      where: { slug: resolvedParams.slug },
     });
 
     if (!topic) {
-      return NextResponse.json({ error: 'Topic not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Topic not found' }, { status: 404, headers: { 'Cache-Control': 'no-store' } });
     }
 
-    return NextResponse.json(topic);
+    return NextResponse.json(topic, { headers: { 'Cache-Control': PUBLIC_CACHE } });
   } catch (error) {
     console.error('Error in GET /api/topics/[slug]:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }

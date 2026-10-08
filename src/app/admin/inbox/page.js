@@ -2,19 +2,31 @@
 
 import { useState, useEffect } from 'react';
 
+const PAGE_SIZE = 10;
+
 export default function InboxPage() {
   const [messages, setMessages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (targetPage) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/inbox');
+      const res = await fetch(`/api/admin/inbox?page=${targetPage}&limit=${PAGE_SIZE}`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(data);
+        setMessages(data.items);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+        setUnread(data.unread);
+        if (data.items.length === 0 && data.page > 1) {
+          setPage(data.page - 1);
+        }
       } else {
         setError('Failed to load messages');
       }
@@ -31,7 +43,7 @@ export default function InboxPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, read: !isRead }),
     });
-    fetchMessages();
+    fetchMessages(page);
   };
 
   const deleteMessage = async (id) => {
@@ -41,13 +53,18 @@ export default function InboxPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
-    fetchMessages();
+    if (messages.length === 1 && page > 1) {
+      // Deleted the last item on this page — go back one (effect refetches).
+      setPage(page - 1);
+    } else {
+      fetchMessages(page);
+    }
   };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchMessages();
-  }, []);
+    fetchMessages(page);
+  }, [page]);
 
   if (loading) {
     return <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>Loading messages...</div>;
@@ -57,7 +74,7 @@ export default function InboxPage() {
     return <div style={{ padding: '32px', color: 'var(--error)' }}>{error}</div>;
   }
 
-  const unreadCount = messages.filter(m => !m.read).length;
+  const unreadCount = unread;
 
   return (
     <div style={{ padding: '32px', maxWidth: '1000px', width: '100%' }}>
@@ -153,6 +170,46 @@ export default function InboxPage() {
               </div>
             </div>
           ))}
+
+          {totalPages > 1 && (
+            <nav aria-label="Inbox pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '16px', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: 'var(--text-secondary)',
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '4px',
+                  cursor: page <= 1 ? 'default' : 'pointer',
+                  opacity: page <= 1 ? 0.5 : 1,
+                }}
+              >
+                ← Prev
+              </button>
+              <span>Page {page} of {totalPages} · {total} messages</span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: 'var(--text-secondary)',
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '4px',
+                  cursor: page >= totalPages ? 'default' : 'pointer',
+                  opacity: page >= totalPages ? 0.5 : 1,
+                }}
+              >
+                Next →
+              </button>
+            </nav>
+          )}
         </div>
       )}
     </div>

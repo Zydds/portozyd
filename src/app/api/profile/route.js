@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Public read-only endpoint: safe to cache (matches homepage ISR window).
+const PUBLIC_CACHE = 'public, max-age=60, s-maxage=60, stale-while-revalidate=300';
+
 export async function GET() {
   try {
     const user = await prisma.user.findFirst({
@@ -17,9 +20,9 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ profile: user || {} });
+    return NextResponse.json({ profile: user || {} }, { headers: { 'Cache-Control': PUBLIC_CACHE } });
   } catch (err) {
     console.error('Error in GET /api/profile:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }

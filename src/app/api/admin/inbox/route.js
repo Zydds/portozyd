@@ -2,17 +2,34 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request) {
   const session = await auth();
   if (!session || session.user?.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const messages = await prisma.contactMessage.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, parseInt(searchParams.get('page'), 10) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit'), 10) || 10));
 
-  return NextResponse.json(messages);
+  const [total, unread, items] = await Promise.all([
+    prisma.contactMessage.count(),
+    prisma.contactMessage.count({ where: { read: false } }),
+    prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+
+  return NextResponse.json({
+    items,
+    total,
+    unread,
+    page,
+    limit,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  });
 }
 
 export async function PATCH(request) {

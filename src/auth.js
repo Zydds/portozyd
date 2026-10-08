@@ -55,6 +55,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/admin/login',
   },
+  // Auth.js v5 rejects non-Vercel hosts in production without this.
+  // Safe here: credentials-only auth (no OAuth callbacks), SameSite=Lax
+  // cookies, and the same-origin gate on /api/admin/* mutations.
+  trustHost: true,
   cookies: {
     sessionToken: {
       options: {
