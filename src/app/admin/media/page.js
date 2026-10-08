@@ -22,6 +22,7 @@ export default function MediaPage() {
     finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchMedia(); }, []);
 
   const handleAddMedia = async (e) => {

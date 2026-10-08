@@ -11,7 +11,7 @@ const defaultInfo = [
 ];
 
 export default function ContactSection() {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '', website: '' });
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState(null);
   const [contactList, setContactList] = useState(defaultInfo);
@@ -55,7 +55,7 @@ export default function ContactSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (res.ok) { setStatus('success'); setFormData({ name: '', email: '', subject: '', message: '' }); }
+      if (res.ok) { setStatus('success'); setFormData({ name: '', email: '', subject: '', message: '', website: '' }); }
       else { setStatus('error'); }
     } catch { setStatus('error'); }
     finally { setSending(false); }
@@ -85,21 +85,33 @@ export default function ContactSection() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div>
-              <label>Name</label>
-              <input type="text" placeholder="Your name" value={formData.name} onChange={handleChange} required />
+            <div style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.website}
+                onChange={handleChange}
+              />
             </div>
             <div>
-              <label>Email</label>
-              <input type="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
+              <label htmlFor="name">Name</label>
+              <input id="name" type="text" placeholder="Your name" value={formData.name} onChange={handleChange} required />
             </div>
             <div>
-              <label>Subject</label>
-              <input type="text" placeholder="What's this about?" value={formData.subject} onChange={handleChange} required />
+              <label htmlFor="email">Email</label>
+              <input id="email" type="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
             </div>
             <div>
-              <label>Message</label>
-              <textarea rows="4" placeholder="Your message..." value={formData.message} onChange={handleChange} required />
+              <label htmlFor="subject">Subject</label>
+              <input id="subject" type="text" placeholder="What's this about?" value={formData.subject} onChange={handleChange} required />
+            </div>
+            <div>
+              <label htmlFor="message">Message</label>
+              <textarea id="message" rows="4" placeholder="Your message..." value={formData.message} onChange={handleChange} required />
             </div>
             <button className="btn btn-primary" type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send message'}</button>
             {status === 'success' && <p style={{ color: 'var(--accent-dim)', fontSize: '0.85rem', marginTop: '12px' }}>Message sent!</p>}

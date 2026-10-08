@@ -6,8 +6,12 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding default skills and experiences...');
 
+  if (!process.env.ADMIN_PASSWORD) {
+    console.error('ADMIN_PASSWORD is not set — refusing to seed with a fallback password.');
+    process.exit(1);
+  }
+  const password = process.env.ADMIN_PASSWORD;
   const email = 'zaidan.azhar@example.com';
-  const password = 'admin_secure_password_2026';
   const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.upsert({

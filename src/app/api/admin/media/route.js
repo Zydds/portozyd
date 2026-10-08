@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ media: mediaList });
   } catch (err) {
     console.error('Error in GET /api/admin/media:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -47,7 +47,7 @@ export async function POST(request) {
     return NextResponse.json({ media: newMedia });
   } catch (err) {
     console.error('Error in POST /api/admin/media:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -67,6 +67,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error in DELETE /api/admin/media:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

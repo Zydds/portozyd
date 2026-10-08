@@ -11,6 +11,6 @@ export async function GET() {
     return NextResponse.json({ details: detailsMap });
   } catch (err) {
     console.error('Error in GET /api/details:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

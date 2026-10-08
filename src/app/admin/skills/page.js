@@ -24,6 +24,7 @@ export default function SkillsPage() {
     finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchSkills(); }, []);
 
   const handleSubmit = async (e) => {

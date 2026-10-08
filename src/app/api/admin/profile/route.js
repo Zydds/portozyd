@@ -41,7 +41,7 @@ export async function GET() {
     });
   } catch (err) {
     console.error('Error in GET /api/admin/profile:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -100,6 +100,6 @@ export async function PUT(request) {
     return NextResponse.json({ user: updatedUser });
   } catch (err) {
     console.error('Error in PUT /api/admin/profile:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 
+function pick(obj, keys) {
+  if (!obj || typeof obj !== 'object') return {};
+  const result = {};
+  for (const key of keys) {
+    if (key in obj && obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
+
 // GET: Return all data for admin dashboard summary
 export async function GET() {
   try {
@@ -19,7 +30,7 @@ export async function GET() {
     return NextResponse.json({ skills, projects, experiences, messages, topicPages });
   } catch (err) {
     console.error('Error in GET /api/admin/crud:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -82,13 +93,17 @@ export async function POST(request) {
       return NextResponse.json(entry);
     }
     if (body.entity === 'contactMessage' && body.id) {
-      const msg = await prisma.contactMessage.update({ where: { id: body.id }, data: body.data });
+      const allowedData = pick(body.data, ['read']);
+      const msg = await prisma.contactMessage.update({
+        where: { id: body.id },
+        data: allowedData,
+      });
       return NextResponse.json(msg);
     }
     return NextResponse.json({ error: 'Invalid entity payload' }, { status: 400 });
   } catch (err) {
     console.error('Error in POST /api/admin/crud:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -103,7 +118,8 @@ export async function PUT(request) {
     const { entity, id, ...data } = body;
 
     if (entity === 'skill') {
-      const skill = await prisma.skill.update({ where: { id }, data });
+      const allowedData = pick(data, ['name', 'category', 'iconKey', 'color', 'order']);
+      const skill = await prisma.skill.update({ where: { id }, data: allowedData });
       return NextResponse.json(skill);
     }
     if (entity === 'project') {
@@ -126,17 +142,29 @@ export async function PUT(request) {
       return NextResponse.json(project);
     }
     if (entity === 'experience') {
-      const entry = await prisma.experience.update({ where: { id }, data });
+      const allowedData = pick(data, [
+        'title',
+        'company',
+        'location',
+        'startDate',
+        'endDate',
+        'isCurrent',
+        'description',
+        'tags',
+        'order',
+      ]);
+      const entry = await prisma.experience.update({ where: { id }, data: allowedData });
       return NextResponse.json(entry);
     }
     if (entity === 'contactMessage') {
-      const msg = await prisma.contactMessage.update({ where: { id }, data });
+      const allowedData = pick(data, ['read']);
+      const msg = await prisma.contactMessage.update({ where: { id }, data: allowedData });
       return NextResponse.json(msg);
     }
     return NextResponse.json({ error: 'Invalid entity type' }, { status: 400 });
   } catch (err) {
     console.error('Error in PUT /api/admin/crud:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -163,6 +191,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error in DELETE /api/admin/crud:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

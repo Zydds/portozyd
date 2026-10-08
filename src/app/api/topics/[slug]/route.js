@@ -13,6 +13,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(topic);
   } catch (error) {
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    console.error('Error in GET /api/topics/[slug]:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

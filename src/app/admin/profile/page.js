@@ -13,6 +13,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProfile({ name: session.user.name || '', email: session.user.email || '', role: session.user.role || 'ADMIN', bio: '', avatar: '', location: '', website: '', linkedin: '', github: '' });
       setLoading(false);
     }

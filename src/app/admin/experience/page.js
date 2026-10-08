@@ -34,6 +34,7 @@ export default function ExperiencePage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchItems(); }, []);
 
   const handleSubmit = async (e) => {

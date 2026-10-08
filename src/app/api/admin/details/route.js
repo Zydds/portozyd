@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ details: detailsMap });
   } catch (err) {
     console.error('Error in GET /api/admin/details:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -45,6 +45,6 @@ export async function PUT(request) {
     return NextResponse.json({ success: true, message: 'Details updated successfully' });
   } catch (err) {
     console.error('Error in PUT /api/admin/details:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -8,7 +8,11 @@ async function main() {
 
   // 1. Create Admin User
   const email = process.env.ADMIN_EMAIL || 'zaidan.azhar@example.com';
-  const password = process.env.ADMIN_PASSWORD || 'admin_secure_password_2026';
+  if (!process.env.ADMIN_PASSWORD) {
+    console.error('ADMIN_PASSWORD is not set — refusing to seed with a fallback password.');
+    process.exit(1);
+  }
+  const password = process.env.ADMIN_PASSWORD;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const admin = await prisma.user.upsert({

@@ -8,7 +8,7 @@ export default function HeroSection() {
       <div>
         <h1>Zaidan Ghiffari Azhar</h1>
         <p className="hero-role">
-          I test software until it breaks, then build the parts that shouldn't.{' '}
+          I test software until it breaks, then build the parts that shouldn&apos;t.{' '}
         </p>
         <div className="hero-meta">
           <span><b>Based</b> Bandung, ID</span>

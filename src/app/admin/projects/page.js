@@ -42,6 +42,7 @@ export default function ProjectsPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchProjects(); }, []);
 
   const handleTitleChange = (e) => {

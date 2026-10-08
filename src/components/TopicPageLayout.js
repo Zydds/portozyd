@@ -125,7 +125,7 @@ export default function TopicPageLayout({ icon, title, intro, focusTitle, focusI
           Interested in Working Together?
         </h3>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-          Let's discuss how we can elevate your project.
+          Let&apos;s discuss how we can elevate your project.
         </p>
         <Link href="/#contact" style={{
           display: 'inline-flex',
