@@ -46,6 +46,13 @@ const nextConfig = {
           { key: 'Content-Security-Policy', value: csp },
         ],
       },
+      {
+        // Big immutable media: never revalidate. Rename the file when replacing it.
+        source: '/videos/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ];
   },
 };

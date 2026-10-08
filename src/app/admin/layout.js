@@ -1,10 +1,13 @@
 import { ThemeProvider } from '@/components/ThemeProvider';
+import SessionProvider from '@/components/SessionProvider';
 import AdminShell from '@/components/admin/AdminShell';
 
 export default function AdminLayout({ children }) {
   return (
-    <ThemeProvider>
-      <AdminShell>{children}</AdminShell>
-    </ThemeProvider>
+    <SessionProvider>
+      <ThemeProvider>
+        <AdminShell>{children}</AdminShell>
+      </ThemeProvider>
+    </SessionProvider>
   );
 }

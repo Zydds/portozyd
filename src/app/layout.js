@@ -1,6 +1,5 @@
 import { Spectral, IBM_Plex_Mono, Inter } from 'next/font/google';
 import './globals.css';
-import SessionProvider from '@/components/SessionProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import GrainOverlay from '@/components/GrainOverlay';
 
@@ -48,11 +47,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${spectral.variable} ${ibmMono.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>
         <GrainOverlay />
-        <SessionProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

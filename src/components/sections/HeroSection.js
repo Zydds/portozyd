@@ -26,7 +26,7 @@ export default function HeroSection() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           poster="/videos/me-static-poster.webp"
           aria-hidden="true"
           suppressHydrationWarning
