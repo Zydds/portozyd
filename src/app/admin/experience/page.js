@@ -17,7 +17,7 @@ export default function ExperiencePage() {
 
   const fetchItems = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/crud');
+      const res = await fetch('/api/admin/crud?entity=experience');
       if (res.status === 401) { router.push('/admin/login'); return; }
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));

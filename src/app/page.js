@@ -9,7 +9,7 @@ import SkillsSection from '@/components/sections/SkillsSection';
 import PortfolioSection from '@/components/sections/PortfolioSection';
 import ContactSection from '@/components/sections/ContactSection';
 
-export const revalidate = 60; // ISR: homepage data refreshes every 60s
+export const revalidate = 300; // ISR: homepage data refreshes every 5 min
 
 export default async function Home() {
   const { details, profile, experiences, skills, projects } = await getHomeData();

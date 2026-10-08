@@ -16,7 +16,7 @@ async function safe(promise, fallback) {
 
 export async function getSharedData() {
   const [detailRows, user] = await Promise.all([
-    safe(prisma.siteDetail.findMany(), []),
+    safe(prisma.siteDetail.findMany({ select: { key: true, value: true } }), []),
     safe(
       prisma.user.findFirst({
         where: { role: 'ADMIN' },
@@ -46,9 +46,24 @@ export async function getSharedData() {
 export async function getHomeData() {
   const [shared, experiences, skills, projects] = await Promise.all([
     getSharedData(),
-    safe(prisma.experience.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }] }), []),
-    safe(prisma.skill.findMany({ orderBy: { order: 'asc' } }), []),
-    safe(prisma.project.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }] }), []),
+    safe(
+      prisma.experience.findMany({
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+        select: { id: true, title: true, company: true, location: true, startDate: true, endDate: true, isCurrent: true, description: true, tags: true },
+      }),
+      []
+    ),
+    safe(
+      prisma.skill.findMany({ orderBy: { order: 'asc' }, select: { id: true, name: true, category: true, iconKey: true, color: true } }),
+      []
+    ),
+    safe(
+      prisma.project.findMany({
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+        select: { id: true, slug: true, title: true, description: true, imageUrl: true, demoUrl: true, githubUrl: true, category: true, featured: true },
+      }),
+      []
+    ),
   ]);
 
   return { ...shared, experiences, skills, projects };

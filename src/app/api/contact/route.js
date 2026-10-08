@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -67,20 +67,26 @@ export async function POST(request) {
       data: { name: trimmedName, email: trimmedEmail, subject: trimmedSubject, message: trimmedMessage },
     });
 
-    // 2. Send Email via Resend (HTML-escaped values)
+    // 2. Notify by email after the response is sent (does not block the sender).
     if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: 'Portfolio Contact <onboarding@resend.dev>',
-        to: process.env.ADMIN_EMAIL || 'zaidan.azhar@example.com',
-        subject: `New Contact Form Submission: ${trimmedSubject}`,
-        html: `
-          <h3>New Message from Portfolio Website</h3>
-          <p><strong>Name:</strong> ${escapeHtml(trimmedName)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(trimmedEmail)}</p>
-          <p><strong>Subject:</strong> ${escapeHtml(trimmedSubject)}</p>
-          <p><strong>Message:</strong></p>
-          <p>${escapeHtml(trimmedMessage).replace(/\n/g, '<br>')}</p>
-        `,
+      after(async () => {
+        try {
+          await resend.emails.send({
+            from: 'Portfolio Contact <onboarding@resend.dev>',
+            to: process.env.ADMIN_EMAIL || 'zaidan.azhar@example.com',
+            subject: `New Contact Form Submission: ${trimmedSubject}`,
+            html: `
+              <h3>New Message from Portfolio Website</h3>
+              <p><strong>Name:</strong> ${escapeHtml(trimmedName)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(trimmedEmail)}</p>
+              <p><strong>Subject:</strong> ${escapeHtml(trimmedSubject)}</p>
+              <p><strong>Message:</strong></p>
+              <p>${escapeHtml(trimmedMessage).replace(/\n/g, '<br>')}</p>
+            `,
+          });
+        } catch (err) {
+          console.error('Contact notification email failed:', err);
+        }
       });
     }
 

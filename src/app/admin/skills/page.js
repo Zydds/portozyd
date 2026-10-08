@@ -15,7 +15,7 @@ export default function SkillsPage() {
 
   const fetchSkills = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/crud');
+      const res = await fetch('/api/admin/crud?entity=skill');
       if (res.status === 401) { router.push('/admin/login'); return; }
       if (!res.ok) { const errData = await res.json().catch(() => ({})); setMessage(errData.error || `Server error (${res.status})`); setLoading(false); return; }
       const data = await res.json();

@@ -14,19 +14,56 @@ function pick(obj, keys) {
   return result;
 }
 
-// GET: Return all data for admin dashboard summary
-export async function GET() {
+// GET: List admin entities. ?entity=skill|project|experience|contactMessage|topicPage
+// returns only that table; no param returns all five (dashboard/back-compat).
+const LIST_SELECT = {
+  skill: { id: true, name: true, category: true, iconKey: true, color: true, order: true },
+  // content stays: the admin edit form loads it from the list row.
+  project: { id: true, title: true, slug: true, description: true, content: true, imageUrl: true, demoUrl: true, githubUrl: true, category: true, featured: true, order: true },
+  experience: { id: true, title: true, company: true, location: true, startDate: true, endDate: true, isCurrent: true, description: true, tags: true, order: true },
+  // message bodies live in /api/admin/inbox, not here.
+  contactMessage: { id: true, name: true, email: true, subject: true, read: true, createdAt: true },
+  topicPage: { id: true, slug: true, title: true, icon: true, intro: true, focusItems: true, toolsItems: true, highlights: true },
+};
+
+const RESPONSE_KEY = {
+  skill: 'skills',
+  project: 'projects',
+  experience: 'experiences',
+  contactMessage: 'messages',
+  topicPage: 'topicPages',
+};
+
+function listQuery(entity) {
+  const select = LIST_SELECT[entity];
+  switch (entity) {
+    case 'skill': return prisma.skill.findMany({ orderBy: { order: 'asc' }, select });
+    case 'project': return prisma.project.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }], select });
+    case 'experience': return prisma.experience.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }], select });
+    case 'contactMessage': return prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' }, select });
+    case 'topicPage': return prisma.topicPage.findMany({ orderBy: { title: 'asc' }, select });
+    default: return null;
+  }
+}
+
+export async function GET(request) {
   try {
     const session = await auth();
     if (!session || session.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const entity = new URL(request.url).searchParams.get('entity');
+    if (entity) {
+      const query = listQuery(entity);
+      if (!query) return NextResponse.json({ error: 'Unknown entity' }, { status: 400 });
+      return NextResponse.json({ [RESPONSE_KEY[entity]]: await query });
+    }
     const [skills, projects, experiences, messages, topicPages] = await Promise.all([
-      prisma.skill.findMany({ orderBy: { order: 'asc' } }),
-      prisma.project.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }] }),
-      prisma.experience.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }] }),
-      prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' } }),
-      prisma.topicPage.findMany({ orderBy: { title: 'asc' } }),
+      listQuery('skill'),
+      listQuery('project'),
+      listQuery('experience'),
+      listQuery('contactMessage'),
+      listQuery('topicPage'),
     ]);
     return NextResponse.json({ skills, projects, experiences, messages, topicPages });
   } catch (err) {
