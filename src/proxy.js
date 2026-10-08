@@ -87,7 +87,8 @@ function enforceIpGate(req) {
     if (isBot(req)) {
       return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
     }
-    return { deny: NextResponse.redirect(new URL('/flag/', req.nextUrl), 302), action: 'redirect', status: 302 };
+    // Human lured to the static honeypot page (public/flag/restricted.html).
+    return { deny: NextResponse.redirect(new URL('/flag/restricted.html', req.nextUrl), 302), action: 'redirect', status: 302 };
   } catch {
     // Fail-closed: any error in the gate denies the request.
     return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
