@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { RiArrowDownSLine, RiSunLine, RiMoonLine } from 'react-icons/ri';
+import { RiArrowDownSLine, RiSunLine, RiMoonLine, RiMenuLine, RiCloseLine } from 'react-icons/ri';
 import { useTheme } from '@/components/ThemeProvider';
 
 const portfolioLinks = [
@@ -124,6 +124,48 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuOpenRef = useRef(false);
+
+  const setMenu = (open) => {
+    menuOpenRef.current = open;
+    setMenuOpen(open);
+  };
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setMenu(false);
+    }
+    function onResize() {
+      if (window.innerWidth > 820) setMenu(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Close the mobile panel after any navigation (back/forward included;
+    // normal link clicks also close via onClick).
+    if (menuOpenRef.current) {
+      setMenu(false);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    function onClickOutside(e) {
+      if (e.target instanceof Element && e.target.closest('.site-nav')) return;
+      setMenu(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenu(false);
 
   const linkStyle = {
     fontFamily: 'var(--font-spectral)',
@@ -137,12 +179,19 @@ export default function Header() {
     transition: 'color 0.15s ease',
   };
 
+  const mainLinks = [
+    { label: 'Home', href: isHome ? '#home' : '/' },
+    { label: 'About', href: isHome ? '#about' : '/#about' },
+    { label: 'Skills', href: isHome ? '#skills' : '/#skills' },
+    { label: 'Contact', href: isHome ? '#contact' : '/#contact' },
+  ];
+
   return (
     <nav className="site-nav">
-      <Link href="/" className="logo" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center' }}>
+      <Link href="/" className="logo" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center' }} onClick={closeMenu}>
         ZYD
       </Link>
-      <ul className="navlinks" style={{ display: 'flex', alignItems: 'center', gap: '28px', listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul className="navlinks">
         <li>
           <Link
             href={isHome ? '#home' : '/'}
@@ -186,14 +235,52 @@ export default function Header() {
           </Link>
         </li>
       </ul>
-      <button
-        onClick={toggleTheme}
-        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        className="theme-toggle"
-        type="button"
-      >
-        {theme === 'dark' ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <button
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="theme-toggle"
+          type="button"
+        >
+          {theme === 'dark' ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
+        </button>
+        <button
+          onClick={() => setMenu(!menuOpen)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-nav"
+          className="menu-toggle"
+          type="button"
+        >
+          {menuOpen ? <RiCloseLine size={20} /> : <RiMenuLine size={20} />}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div id="mobile-nav" className="mobile-nav">
+          {mainLinks.map(item => (
+            <Link key={item.label} href={item.href} onClick={closeMenu}>
+              {item.label}
+            </Link>
+          ))}
+          <div className="mnav-group">
+            <div className="mnav-label">portfolio</div>
+            {portfolioLinks.map(item => (
+              <Link key={item.href} href={item.href} onClick={closeMenu}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mnav-group">
+            <div className="mnav-label">hobbies</div>
+            {hobbiesLinks.map(item => (
+              <Link key={item.href} href={item.href} onClick={closeMenu}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

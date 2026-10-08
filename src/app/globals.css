@@ -74,7 +74,48 @@ a { color: inherit; text-decoration: none; }
   transition: all 0.15s ease;
 }
 .theme-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
-@media (max-width: 820px) { .site-nav .navlinks { display: none; } }
+
+/* ---- MOBILE NAV (slide-down panel) ---- */
+.menu-toggle {
+  width: 36px; height: 36px; border: 1px solid var(--border-strong); background: transparent;
+  color: var(--text-secondary); cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.menu-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+
+.mobile-nav {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  padding: 8px clamp(20px, 5vw, 56px) 18px;
+  animation: navSlideDown 0.22s ease;
+  z-index: 60;
+}
+@keyframes navSlideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mobile-nav a {
+  display: block; padding: 11px 0;
+  font-family: var(--font-spectral); font-style: italic; font-size: 0.95rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: color 0.15s ease;
+}
+.mobile-nav a:hover, .mobile-nav a:active { color: var(--text-primary); }
+.mobile-nav .mnav-group { margin-top: 14px; }
+.mobile-nav .mnav-label {
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+.mobile-nav .mnav-group a { padding: 9px 0 9px 14px; font-size: 0.88rem; }
+.mobile-nav .mnav-group a:last-child { border-bottom: none; }
+
+@media (min-width: 821px) { .mobile-nav { display: none; } }
+@media (max-width: 820px) { .site-nav .navlinks { display: none; } .menu-toggle { display: flex; } }
+@media (prefers-reduced-motion: reduce) { .mobile-nav { animation: none; } }
 
 /* ---- WRAPPER ---- */
 .wrap { max-width: 1200px; margin: 0 auto; padding-left: clamp(20px, 5vw, 56px); padding-right: clamp(20px, 5vw, 56px); }
