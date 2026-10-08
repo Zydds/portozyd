@@ -55,5 +55,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/admin/login',
   },
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: true,
+        path: '/',
+      },
+    },
+    csrfToken: {
+      options: {
+        sameSite: 'lax',
+        secure: true,
+      },
+    },
+  },
   secret: process.env.NEXTAUTH_SECRET,
 });

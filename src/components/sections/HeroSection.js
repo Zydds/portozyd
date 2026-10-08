@@ -26,6 +26,7 @@ export default function HeroSection() {
           loop
           muted
           playsInline
+          suppressHydrationWarning
           style={{
             width: '100%',
             height: '100%',

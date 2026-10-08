@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
+import { safeUrl } from '@/lib/safe-url';
 
 function pick(obj, keys) {
   if (!obj || typeof obj !== 'object') return {};
@@ -65,9 +66,9 @@ export async function POST(request) {
           slug: genSlug,
           description: description || '',
           content: content || null,
-          imageUrl: imageUrl || null,
-          demoUrl: demoUrl || null,
-          githubUrl: githubUrl || null,
+          imageUrl: safeUrl(imageUrl),
+          demoUrl: safeUrl(demoUrl),
+          githubUrl: safeUrl(githubUrl),
           category: category || 'web',
           featured: Boolean(featured),
           order: typeof order === 'number' ? order : 0,
@@ -131,9 +132,9 @@ export async function PUT(request) {
           ...(slug !== undefined && { slug: slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') }),
           ...(description !== undefined && { description }),
           ...(content !== undefined && { content: content || null }),
-          ...(imageUrl !== undefined && { imageUrl: imageUrl || null }),
-          ...(demoUrl !== undefined && { demoUrl: demoUrl || null }),
-          ...(githubUrl !== undefined && { githubUrl: githubUrl || null }),
+          ...(imageUrl !== undefined && { imageUrl: safeUrl(imageUrl) }),
+          ...(demoUrl !== undefined && { demoUrl: safeUrl(demoUrl) }),
+          ...(githubUrl !== undefined && { githubUrl: safeUrl(githubUrl) }),
           ...(category !== undefined && { category }),
           ...(featured !== undefined && { featured: Boolean(featured) }),
           ...(order !== undefined && { order: Number(order) }),

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
+import { safeUrl } from '@/lib/safe-url';
 
 export async function GET() {
   try {
@@ -30,14 +31,21 @@ export async function POST(request) {
     const body = await request.json();
     const { filename, url, publicId, mimeType, size } = body;
 
-    if (!url || !filename) {
-      return NextResponse.json({ error: 'Filename and URL are required' }, { status: 400 });
+    if (!filename) {
+      return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
+    }
+
+    const safeMediaUrl = safeUrl(url);
+    if (!safeMediaUrl) {
+      // Media.url is a non-nullable column, so an unsafe URL is rejected outright
+      // instead of stored as null.
+      return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
 
     const newMedia = await prisma.media.create({
       data: {
         filename,
-        url,
+        url: safeMediaUrl,
         publicId: publicId || `manual_${Date.now()}`,
         mimeType: mimeType || 'image/jpeg',
         size: size ? parseInt(size, 10) : null,

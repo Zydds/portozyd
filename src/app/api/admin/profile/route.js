@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
+import { safeUrl } from '@/lib/safe-url';
 
 export async function GET() {
   try {
@@ -77,11 +78,11 @@ export async function PUT(request) {
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
         ...(bio !== undefined && { bio }),
-        ...(avatar !== undefined && { avatar }),
+        ...(avatar !== undefined && { avatar: safeUrl(avatar) }),
         ...(location !== undefined && { location }),
-        ...(website !== undefined && { website }),
-        ...(linkedin !== undefined && { linkedin }),
-        ...(github !== undefined && { github }),
+        ...(website !== undefined && { website: safeUrl(website) }),
+        ...(linkedin !== undefined && { linkedin: safeUrl(linkedin) }),
+        ...(github !== undefined && { github: safeUrl(github) }),
       },
       select: {
         id: true,
