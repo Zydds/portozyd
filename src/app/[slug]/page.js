@@ -1,9 +1,13 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import TopicPageLayout from '@/components/TopicPageLayout';
 import TopicLayout from '@/app/topic-layout';
 
 export const revalidate = 60; // ISR revalidation every 60s
+
+// Shared between generateMetadata and the page (one query per render).
+const getTopic = cache(async (slug) => prisma.topicPage.findUnique({ where: { slug } }));
 
 export async function generateStaticParams() {
   try {
@@ -22,9 +26,7 @@ export async function generateMetadata({ params }) {
   if (!slug) return {};
 
   try {
-    const page = await prisma.topicPage.findUnique({
-      where: { slug },
-    });
+    const page = await getTopic(slug);
     if (!page) return {};
     return {
       title: `${page.title} — Zaidan Ghiffari Azhar`,
@@ -45,9 +47,7 @@ export default async function DynamicTopicPage({ params }) {
 
   let page = null;
   try {
-    page = await prisma.topicPage.findUnique({
-      where: { slug },
-    });
+    page = await getTopic(slug);
   } catch (err) {
     console.error('Error fetching topic page:', err);
   }

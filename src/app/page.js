@@ -1,5 +1,4 @@
 import { getHomeData } from '@/lib/home-data';
-import { ThemeProvider } from '@/components/ThemeProvider';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/sections/HeroSection';
@@ -15,7 +14,7 @@ export default async function Home() {
   const { details, profile, experiences, skills, projects } = await getHomeData();
 
   return (
-    <ThemeProvider>
+    <>
       <Header />
       <main style={{ paddingTop: '64px' }}>
         <HeroSection />
@@ -31,6 +30,6 @@ export default async function Home() {
         <ContactSection profile={profile} details={details} />
       </main>
       <Footer profile={profile} details={details} />
-    </ThemeProvider>
+    </>
   );
 }

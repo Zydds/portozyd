@@ -6,7 +6,7 @@ import GrainOverlay from '@/components/GrainOverlay';
 const spectral = Spectral({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
+  style: ['italic'], // every Spectral usage on the site is italic
   variable: '--font-spectral',
   display: 'swap',
 });

@@ -96,6 +96,9 @@ model ContactMessage {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([createdAt]) // inbox listing: orderBy createdAt + count
+  @@index([read])      // unread badge: count({ where: { read: false } })
 }
 
 model SiteDetail {
