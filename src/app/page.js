@@ -1,3 +1,4 @@
+import { getHomeData } from '@/lib/home-data';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -8,24 +9,28 @@ import SkillsSection from '@/components/sections/SkillsSection';
 import PortfolioSection from '@/components/sections/PortfolioSection';
 import ContactSection from '@/components/sections/ContactSection';
 
-export default function Home() {
+export const revalidate = 60; // ISR: homepage data refreshes every 60s
+
+export default async function Home() {
+  const { details, profile, experiences, skills, projects } = await getHomeData();
+
   return (
     <ThemeProvider>
       <Header />
       <main style={{ paddingTop: '64px' }}>
         <HeroSection />
         <div className="wrap"><div className="divider"></div></div>
-        <AboutSection />
+        <AboutSection details={details} />
         <div className="wrap"><div className="divider"></div></div>
-        <ExperienceSection />
+        <ExperienceSection experiences={experiences} />
         <div className="wrap"><div className="divider"></div></div>
-        <SkillsSection />
+        <SkillsSection skills={skills} />
         <div className="wrap"><div className="divider"></div></div>
-        <PortfolioSection />
+        <PortfolioSection projects={projects} />
         <div className="wrap"><div className="divider"></div></div>
-        <ContactSection />
+        <ContactSection profile={profile} details={details} />
       </main>
-      <Footer />
+      <Footer profile={profile} details={details} />
     </ThemeProvider>
   );
 }

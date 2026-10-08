@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { RiGithubLine, RiLinkedinLine, RiMailLine } from 'react-icons/ri';
 
@@ -28,40 +27,14 @@ const linkStyle = {
   transition: 'color 0.15s ease',
 };
 
-export default function Footer() {
-  const [footerQuote, setFooterQuote] = useState(
-    'Building reliable software and quality-driven web experiences. Always learning, always improving.'
-  );
-  const [socialLinks, setSocialLinks] = useState([
-    { icon: RiGithubLine, href: 'https://github.com/Zydos', label: 'GitHub' },
-    { icon: RiLinkedinLine, href: 'https://linkedin.com/in/zaidan-ghiffari', label: 'LinkedIn' },
-    { icon: RiMailLine, href: 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
-  ]);
-
-  useEffect(() => {
-    fetch('/api/details')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.details?.footer_quote) {
-          setFooterQuote(data.details.footer_quote);
-        }
-      })
-      .catch(() => {});
-
-    fetch('/api/profile')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.profile) {
-          const p = data.profile;
-          setSocialLinks([
-            { icon: RiGithubLine, href: p.github || 'https://github.com/Zydos', label: 'GitHub' },
-            { icon: RiLinkedinLine, href: p.linkedin || 'https://linkedin.com/in/zaidan-ghiffari', label: 'LinkedIn' },
-            { icon: RiMailLine, href: p.email ? `mailto:${p.email}` : 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
-          ]);
-        }
-      })
-      .catch(() => {});
-  }, []);
+export default function Footer({ profile = {}, details = {} }) {
+  const footerQuote = details.footer_quote ||
+    'Building reliable software and quality-driven web experiences. Always learning, always improving.';
+  const socialLinks = [
+    { icon: RiGithubLine, href: profile.github || 'https://github.com/Zydos', label: 'GitHub' },
+    { icon: RiLinkedinLine, href: profile.linkedin || 'https://linkedin.com/in/zaidan-ghiffari', label: 'LinkedIn' },
+    { icon: RiMailLine, href: profile.email ? `mailto:${profile.email}` : 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
+  ];
 
   return (
     <footer style={{

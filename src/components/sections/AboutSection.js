@@ -1,30 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
 const defaultParagraphs = {
   about_p1: "I'm a software quality advocate and web developer based in Indonesia. My journey started with curiosity about how things work behind the scenes, which led me to QA and full-stack development.",
   about_p2: "I build reliable, user-friendly web applications while making sure every detail meets high standards, from automated test suites to responsive interfaces.",
   about_p3: "Outside of testing and coding, I explore new tech, play strategy games, and organize projects with my favorite productivity tools.",
 };
 
-export default function AboutSection() {
-  const [copy, setCopy] = useState(defaultParagraphs);
-
-  useEffect(() => {
-    fetch('/api/details')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.details) {
-          setCopy(prev => ({
-            about_p1: data.details.about_p1 || prev.about_p1,
-            about_p2: data.details.about_p2 || prev.about_p2,
-            about_p3: data.details.about_p3 || prev.about_p3,
-          }));
-        }
-      })
-      .catch(() => {});
-  }, []);
+export default function AboutSection({ details = {} }) {
+  const copy = {
+    about_p1: details.about_p1 || defaultParagraphs.about_p1,
+    about_p2: details.about_p2 || defaultParagraphs.about_p2,
+    about_p3: details.about_p3 || defaultParagraphs.about_p3,
+  };
 
   return (
     <section id="about" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>

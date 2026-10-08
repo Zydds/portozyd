@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import SkillIcon from '@/components/SkillIcon';
 
 const placeholderCategories = [
@@ -65,19 +64,8 @@ function buildCategoriesFromDB(skills) {
   return Object.entries(map).map(([title, skills]) => ({ title, skills }));
 }
 
-export default function SkillsSection() {
-  const [categories, setCategories] = useState(placeholderCategories);
-
-  useEffect(() => {
-    fetch('/api/admin/crud')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data && data.skills && data.skills.length > 0) {
-          setCategories(buildCategoriesFromDB(data.skills));
-        }
-      })
-      .catch(() => {});
-  }, []);
+export default function SkillsSection({ skills = [] }) {
+  const categories = skills.length > 0 ? buildCategoriesFromDB(skills) : placeholderCategories;
 
   return (
     <section id="skills" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>

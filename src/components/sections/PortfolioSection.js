@@ -1,8 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-
 const placeholderProjects = [
   {
     id: 'p1',
@@ -39,33 +36,10 @@ const placeholderProjects = [
   },
 ];
 
-export default function PortfolioSection() {
-  const [projects, setProjects] = useState(placeholderProjects);
-  const [totalCount, setTotalCount] = useState(placeholderProjects.length);
-
-  useEffect(() => {
-    // Fetch from public projects endpoint
-    fetch('/api/projects')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data && data.projects && data.projects.length > 0) {
-          setTotalCount(data.projects.length);
-          setProjects(data.projects.slice(0, 3));
-        } else {
-          // Fallback to crud endpoint if available
-          fetch('/api/admin/crud')
-            .then(res => (res.ok ? res.json() : null))
-            .then(adminData => {
-              if (adminData && adminData.projects && adminData.projects.length > 0) {
-                setTotalCount(adminData.projects.length);
-                setProjects(adminData.projects.slice(0, 3));
-              }
-            })
-            .catch(() => {});
-        }
-      })
-      .catch(() => {});
-  }, []);
+export default function PortfolioSection({ projects = [] }) {
+  const hasDbProjects = projects.length > 0;
+  const shown = hasDbProjects ? projects.slice(0, 3) : placeholderProjects;
+  const totalCount = hasDbProjects ? projects.length : placeholderProjects.length;
 
   return (
     <section id="portfolio" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>
@@ -77,13 +51,13 @@ export default function PortfolioSection() {
           <span className="meta">{totalCount} projects · top 3 featured</span>
         </div>
 
-        {projects.length === 0 ? (
+        {shown.length === 0 ? (
           <div style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: '8px', padding: '48px', textAlign: 'center' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', margin: 0 }}>No projects published yet.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {projects.map((proj) => (
+            {shown.map((proj) => (
               <div
                 key={proj.id || proj.slug}
                 style={{

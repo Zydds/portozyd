@@ -1,29 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-export default function ExperienceSection() {
-  const router = useRouter();
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/admin/crud')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data && data.experiences && data.experiences.length > 0) {
-          const mapped = data.experiences.map(e => ({
-            title: e.title,
-            company: e.company,
-            dates: `${e.startDate} – ${e.isCurrent ? 'Present' : (e.endDate || 'Present')}`,
-            description: e.description,
-            tags: e.tags || [],
-          }));
-          setItems(mapped);
-        }
-      })
-      .catch(() => {});
-  }, []);
+export default function ExperienceSection({ experiences = [] }) {
+  const items = experiences.map(e => ({
+    title: e.title,
+    company: e.company,
+    dates: `${e.startDate} – ${e.isCurrent ? 'Present' : (e.endDate || 'Present')}`,
+    description: e.description,
+    tags: e.tags || [],
+  }));
 
   return (
     <section id="experience" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>

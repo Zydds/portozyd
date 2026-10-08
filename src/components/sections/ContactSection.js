@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { RiMailLine, RiGithubLine, RiLinkedinLine, RiMapPinLine } from 'react-icons/ri';
 
 const defaultInfo = [
@@ -10,36 +10,20 @@ const defaultInfo = [
   { icon: RiMapPinLine, label: 'Location', value: 'Bandung, Indonesia', href: null },
 ];
 
-export default function ContactSection() {
+const defaultIntro = 'Whether you have a question about QA, web dev, or project management, feel free to drop a message.';
+
+export default function ContactSection({ profile = {}, details = {} }) {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '', website: '' });
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState(null);
-  const [contactList, setContactList] = useState(defaultInfo);
-  const [intro, setIntro] = useState('Whether you have a question about QA, web dev, or project management, feel free to drop a message.');
 
-  useEffect(() => {
-    fetch('/api/profile')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.profile) {
-          const p = data.profile;
-          setContactList([
-            { icon: RiMailLine, label: 'Email', value: p.email || defaultInfo[0].value, href: p.email ? `mailto:${p.email}` : defaultInfo[0].href },
-            { icon: RiGithubLine, label: 'GitHub', value: p.github ? p.github.replace(/^https?:\/\//, '') : defaultInfo[1].value, href: p.github || defaultInfo[1].href },
-            { icon: RiLinkedinLine, label: 'LinkedIn', value: p.linkedin ? p.linkedin.replace(/^https?:\/\//, '') : defaultInfo[2].value, href: p.linkedin || defaultInfo[2].href },
-            { icon: RiMapPinLine, label: 'Location', value: p.location || defaultInfo[3].value, href: null },
-          ]);
-        }
-      })
-      .catch(() => {});
-
-    fetch('/api/details')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data?.details?.contact_intro) setIntro(data.details.contact_intro);
-      })
-      .catch(() => {});
-  }, []);
+  const intro = details.contact_intro || defaultIntro;
+  const contactList = [
+    { icon: RiMailLine, label: 'Email', value: profile.email || defaultInfo[0].value, href: profile.email ? `mailto:${profile.email}` : defaultInfo[0].href },
+    { icon: RiGithubLine, label: 'GitHub', value: profile.github ? profile.github.replace(/^https?:\/\//, '') : defaultInfo[1].value, href: profile.github || defaultInfo[1].href },
+    { icon: RiLinkedinLine, label: 'LinkedIn', value: profile.linkedin ? profile.linkedin.replace(/^https?:\/\//, '') : defaultInfo[2].value, href: profile.linkedin || defaultInfo[2].href },
+    { icon: RiMapPinLine, label: 'Location', value: profile.location || defaultInfo[3].value, href: null },
+  ];
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));

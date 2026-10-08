@@ -1,6 +1,8 @@
 import TopicPageLayout from '@/components/TopicPageLayout';
 import TopicLayout from '@/app/topic-layout';
 
+export const revalidate = 60; // ISR: shared layout data refreshes every 60s
+
 export default function PMPage() {
   return (
     <TopicLayout>
