@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   SiJavascript, SiPython, SiPhp, SiTypescript,
@@ -185,7 +186,7 @@ export default function SkillIcon({ name = '', iconKey = '', color = '#6366F1', 
   if (iconKey && (iconKey.startsWith('http://') || iconKey.startsWith('https://'))) {
     if (!imgError) {
       return (
-        <img
+        <Image
           src={iconKey}
           alt={name}
           width={size}
@@ -201,7 +202,7 @@ export default function SkillIcon({ name = '', iconKey = '', color = '#6366F1', 
   if (!imgError && slug) {
     const cdnUrl = `https://cdn.simpleicons.org/${slug}/${hexColor}`;
     return (
-      <img
+      <Image
         src={cdnUrl}
         alt={name}
         width={size}

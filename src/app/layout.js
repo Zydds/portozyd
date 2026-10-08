@@ -29,6 +29,18 @@ const inter = Inter({
 export const metadata = {
   title: 'ZYD — Quality Assurance & Web Development',
   description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
+  openGraph: {
+    title: 'ZYD — Quality Assurance & Web Development',
+    description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
+    siteName: 'ZYD Portfolio',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'ZYD — Quality Assurance & Web Development',
+    description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
+  },
 };
 
 export default function RootLayout({ children }) {

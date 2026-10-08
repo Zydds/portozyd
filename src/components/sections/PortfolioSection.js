@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 const placeholderProjects = [
   {
     id: 'p1',
@@ -73,11 +75,13 @@ export default function PortfolioSection({ projects = [] }) {
               >
                 <div>
                   {proj.imageUrl && (
-                    <div style={{ width: '100%', height: '160px', overflow: 'hidden', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
-                      <img
+                    <div style={{ position: 'relative', width: '100%', height: '160px', overflow: 'hidden', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                      <Image
                         src={proj.imageUrl}
                         alt={proj.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        fill
+                        sizes="(max-width: 820px) 100vw, 380px"
+                        style={{ objectFit: 'cover' }}
                         onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
                       />
                     </div>

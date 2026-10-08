@@ -19,6 +19,19 @@ const csp = [
 const nextConfig = {
   /* config options here */
   poweredByHeader: false,
+  images: {
+    // Only hosts our content actually uses; arbitrary admin URLs fail
+    // over gracefully via each component's onError fallback.
+    remotePatterns: [
+      { protocol: 'https', hostname: 'cdn.simpleicons.org' },
+      { protocol: 'https', hostname: '*.res.cloudinary.com' },
+      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+    ],
+    // SimpleIcons serves SVGs through the optimizer.
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
   async headers() {
     return [
       {
