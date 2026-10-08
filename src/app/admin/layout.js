@@ -1,15 +1,10 @@
 import { ThemeProvider } from '@/components/ThemeProvider';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminShell from '@/components/admin/AdminShell';
 
 export default function AdminLayout({ children }) {
   return (
     <ThemeProvider>
-      <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-        <AdminSidebar />
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto' }}>
-          {children}
-        </main>
-      </div>
+      <AdminShell>{children}</AdminShell>
     </ThemeProvider>
   );
 }

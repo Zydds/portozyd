@@ -29,7 +29,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ padding: '32px', maxWidth: '900px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', width: '100%' }}>
       <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)', marginBottom: '32px' }}>Settings &amp; Security</h1>
 
       {msg.text && (
@@ -55,7 +55,7 @@ export default function SettingsPage() {
           <h2 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontSize: '1.125rem', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="icon-chip"></span> System Status
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: '16px' }}>
             <div style={{ padding: '12px', background: 'var(--bg)', borderRadius: '6px', border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Database</div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-dim)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><FiCheckCircle size={14} /> Neon PostgreSQL Connected</div>

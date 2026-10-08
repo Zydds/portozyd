@@ -12,7 +12,7 @@ const topics = [
 
 export default function TopicsPage() {
   return (
-    <div style={{ padding: '32px', maxWidth: '1200px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1200px', width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
           Topic Pages

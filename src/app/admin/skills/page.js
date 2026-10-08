@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import SkillIcon from '@/components/SkillIcon';
 
@@ -13,7 +13,7 @@ export default function SkillsPage() {
   const [formData, setFormData] = useState({ name: '', category: 'Languages', iconKey: '', color: '#6366F1' });
   const [message, setMessage] = useState(null);
 
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/crud');
       if (res.status === 401) { router.push('/admin/login'); return; }
@@ -22,10 +22,10 @@ export default function SkillsPage() {
       setSkills(data.skills || []);
     } catch (err) { setMessage('Network error connecting to server'); }
     finally { setLoading(false); }
-  };
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchSkills(); }, []);
+  useEffect(() => { fetchSkills(); }, [fetchSkills]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,11 +48,11 @@ export default function SkillsPage() {
     } catch { setMessage('Error deleting skill'); }
   };
 
-  if (loading) return <div style={{ padding: '32px', color: 'var(--text-primary)' }}>Loading skills...</div>;
+  if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading skills...</div>;
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1000px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1000px', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '32px' }}>
         <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)' }}>Skills</h1>
         <button onClick={() => { setShowForm(true); setEditing(null); setFormData({ name: '', category: 'Languages', iconKey: '', color: '#6366F1' }); }} style={{ padding: '10px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-inter), sans-serif' }}>+ Add Skill</button>
       </div>
@@ -89,7 +89,7 @@ export default function SkillsPage() {
           </div>
         </form>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 170px), 1fr))', gap: '16px' }}>
         {skills.map(skill => (
           <div key={skill.id} style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: '8px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             <SkillIcon name={skill.name} iconKey={skill.iconKey} color={skill.color || '#6366F1'} size={32} />

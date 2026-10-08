@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiUpload, FiTrash2, FiCopy, FiCheck, FiExternalLink, FiImage } from 'react-icons/fi';
 
@@ -13,17 +14,17 @@ export default function MediaPage() {
   const [copiedId, setCopiedId] = useState(null);
   const [message, setMessage] = useState('');
 
-  const fetchMedia = async () => {
+  const fetchMedia = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/media');
       if (res.status === 401) { router.push('/admin/login'); return; }
       if (res.ok) { const data = await res.json(); setMedia(data.media || []); }
     } catch { setMessage('Failed to load media assets'); }
     finally { setLoading(false); }
-  };
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchMedia(); }, []);
+  useEffect(() => { fetchMedia(); }, [fetchMedia]);
 
   const handleAddMedia = async (e) => {
     e.preventDefault();
@@ -53,11 +54,11 @@ export default function MediaPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (loading) return <div style={{ padding: '32px', color: 'var(--text-primary)' }}>Loading media library...</div>;
+  if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading media library...</div>;
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1100px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1100px', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)' }}>Media Library</h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Store, view, and copy direct image URLs for your projects and topic pages.</p>
@@ -90,11 +91,18 @@ export default function MediaPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Add direct image links to preview and reuse them across your Projects and Topics.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '20px' }}>
           {media.map(item => (
             <div key={item.id} style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <div style={{ height: '140px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-                <img src={item.url} alt={item.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; if (e.currentTarget.nextElementSibling) e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                <Image
+                  src={item.url}
+                  alt={item.filename}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 240px"
+                  style={{ objectFit: 'cover' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; if (e.currentTarget.nextElementSibling) e.currentTarget.nextElementSibling.style.display = 'flex'; }}
+                />
                 <div style={{ display: 'none', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'var(--text-tertiary)' }}><FiImage size={24} /><span style={{ fontSize: '0.75rem' }}>Image Link</span></div>
               </div>
               <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>

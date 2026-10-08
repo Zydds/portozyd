@@ -22,19 +22,16 @@ const navItems = [
   { label: 'Settings', href: '/admin/settings', icon: RiSettings4Line },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ open = false, onClose = () => {} }) {
   const pathname = usePathname();
 
   return (
-    <aside style={{
+    <aside id="admin-sidebar" className={`admin-sidebar${open ? ' open' : ''}`} style={{
       width: '260px',
       backgroundColor: 'var(--bg-raised, #131316)',
       borderRight: '1px solid var(--border-strong, #33333a)',
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
-      position: 'sticky',
-      top: 0,
     }}>
       <div style={{ padding: '24px', borderBottom: '1px solid var(--border-strong, #33333a)' }}>
         <h2 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 600, fontSize: '1.25rem', color: 'var(--text-primary)' }}>
@@ -49,6 +46,7 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -83,7 +81,7 @@ export default function AdminSidebar() {
       </nav>
 
       <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border-subtle)' }}>
-        <Link href="/" style={{
+        <Link href="/" onClick={onClose} style={{
           display: 'flex',
           alignItems: 'center',
           gap: '12px',

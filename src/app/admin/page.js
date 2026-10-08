@@ -20,12 +20,12 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1200px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1200px', width: '100%' }}>
       <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)', marginBottom: '32px' }}>
         Dashboard Overview
       </h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: '20px', marginBottom: '32px' }}>
         {stats.map(stat => (
           <div key={stat.label} style={{
             backgroundColor: 'var(--bg-raised, #131316)',

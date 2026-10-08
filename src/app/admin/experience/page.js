@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function ExperiencePage() {
@@ -15,7 +15,7 @@ export default function ExperiencePage() {
     isCurrent: false, description: '', tags: '',
   });
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/crud');
       if (res.status === 401) { router.push('/admin/login'); return; }
@@ -32,10 +32,10 @@ export default function ExperiencePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,11 +75,11 @@ export default function ExperiencePage() {
     }
   };
 
-  if (loading) return <div style={{ padding: '32px', color: 'var(--text-primary)' }}>Loading experiences...</div>;
+  if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading experiences...</div>;
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1000px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1000px', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '32px' }}>
         <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)' }}>Experience</h1>
         <button onClick={() => { setShowForm(true); setEditing(null); setFormData({ title: '', company: '', location: '', startDate: '', endDate: '', isCurrent: false, description: '', tags: '' }); }} style={{ padding: '10px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--font-inter), sans-serif' }}>+ Add Experience</button>
       </div>

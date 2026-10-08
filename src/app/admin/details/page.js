@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiSave } from 'react-icons/fi';
 
@@ -17,7 +17,7 @@ export default function DetailsPage() {
   const [saved, setSaved] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
-  const fetchDetails = async () => {
+  const fetchDetails = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/details');
       if (res.status === 401) { router.push('/admin/login'); return; }
@@ -27,10 +27,10 @@ export default function DetailsPage() {
       }
     } catch { setMsg({ type: 'error', text: 'Failed to load details' }); }
     finally { setLoading(false); }
-  };
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchDetails(); }, []);
+  useEffect(() => { fetchDetails(); }, [fetchDetails]);
 
   const handleChange = (key, value) => {
     setDetails(prev => ({ ...prev, [key]: value }));
@@ -53,7 +53,7 @@ export default function DetailsPage() {
     } catch { setMsg({ type: 'error', text: 'Network connection failed' }); }
   };
 
-  if (loading) return <div style={{ padding: '32px', color: 'var(--text-primary)' }}>Loading site details...</div>;
+  if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading site details...</div>;
 
   const textareaStyle = {
     width: '100%',
@@ -69,7 +69,7 @@ export default function DetailsPage() {
   };
 
   return (
-    <div style={{ padding: '32px', maxWidth: '900px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)' }}>Landing Page Details</h1>

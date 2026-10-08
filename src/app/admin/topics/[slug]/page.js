@@ -92,11 +92,11 @@ export default function TopicEditorPage({ params }) {
   };
 
   if (loading) {
-    return <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>Loading topic data...</div>;
+    return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-secondary)' }}>Loading topic data...</div>;
   }
 
   return (
-    <div style={{ padding: '32px', maxWidth: '900px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', width: '100%' }}>
       <div style={{ marginBottom: '32px' }}>
         <button
           onClick={() => router.back()}

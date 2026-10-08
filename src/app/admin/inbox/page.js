@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const PAGE_SIZE = 10;
 
@@ -13,7 +13,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchMessages = async (targetPage) => {
+  const fetchMessages = useCallback(async (targetPage) => {
     setLoading(true);
     setError(null);
     try {
@@ -35,7 +35,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const markRead = async (id, isRead) => {
     await fetch('/api/admin/inbox', {
@@ -64,21 +64,21 @@ export default function InboxPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages(page);
-  }, [page]);
+  }, [page, fetchMessages]);
 
   if (loading) {
-    return <div style={{ padding: '32px', color: 'var(--text-secondary)' }}>Loading messages...</div>;
+    return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-secondary)' }}>Loading messages...</div>;
   }
 
   if (error) {
-    return <div style={{ padding: '32px', color: 'var(--error)' }}>{error}</div>;
+    return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--error)' }}>{error}</div>;
   }
 
   const unreadCount = unread;
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1000px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1000px', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
           Inbox
         </h1>
@@ -118,12 +118,12 @@ export default function InboxPage() {
                 if (!msg.read) e.currentTarget.style.borderColor = 'var(--accent-primary)';
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                 <div>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{msg.name}</h3>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{msg.email}</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>{msg.email}</p>
                 </div>
-                <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
                   {new Date(msg.createdAt).toLocaleString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -172,7 +172,7 @@ export default function InboxPage() {
           ))}
 
           {totalPages > 1 && (
-            <nav aria-label="Inbox pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '16px', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+            <nav aria-label="Inbox pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '10px 16px', marginTop: '16px', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page <= 1}

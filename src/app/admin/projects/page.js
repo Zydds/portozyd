@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function ProjectsPage() {
@@ -23,7 +23,7 @@ export default function ProjectsPage() {
     order: 0,
   });
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/crud');
       if (res.status === 401) { router.push('/admin/login'); return; }
@@ -40,10 +40,10 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   const handleTitleChange = (e) => {
     const val = e.target.value;
@@ -142,10 +142,10 @@ export default function ProjectsPage() {
     }
   };
 
-  if (loading) return <div style={{ padding: '32px', color: 'var(--text-primary)' }}>Loading projects...</div>;
+  if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading projects...</div>;
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1000px', width: '100%' }}>
+    <div style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '1000px', width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: '1.875rem', color: 'var(--text-primary)', margin: 0 }}>Projects</h1>
@@ -209,7 +209,7 @@ export default function ProjectsPage() {
             {editing ? 'Edit Project' : 'Add New Project'}
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)', marginBottom: '6px' }}>Title *</label>
               <input
@@ -255,7 +255,7 @@ export default function ProjectsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)', marginBottom: '6px' }}>Image URL</label>
               <input
@@ -313,7 +313,7 @@ export default function ProjectsPage() {
             </label>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
             <button
               type="submit"
               style={{
@@ -351,7 +351,7 @@ export default function ProjectsPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', margin: 0 }}>No projects created yet.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
           {projects.map(proj => (
             <div
               key={proj.id}
