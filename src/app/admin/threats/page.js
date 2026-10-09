@@ -4,10 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useConfirm } from '@/components/admin/ConfirmProvider';
 
-const ACTION_META = {
-  redirect: { label: 'HUMAN 302', color: 'var(--accent-dim)', bg: 'rgba(58, 76, 255, 0.1)', border: 'var(--accent)' },
-  block: { label: 'BOT 404', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.4)' },
-  origin: { label: 'ORIGIN 404', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.4)' },
+// Attack kind derived server-side in GET /api/admin/probes (read-time
+// classification; enforcement is a uniform 302 regardless of kind).
+const KIND_META = {
+  CSRF: { label: 'CSRF', color: '#f97316', bg: 'rgba(249, 115, 22, 0.1)', border: 'rgba(249, 115, 22, 0.4)' },
+  EXPLOIT: { label: 'EXPLOIT', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.4)' },
+  SCANNER: { label: 'SCANNER', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.4)' },
+  BOT: { label: 'BOT', color: '#6366F1', bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.4)' },
+  'NO-UA': { label: 'NO-UA', color: '#a3a3a3', bg: 'rgba(163, 163, 163, 0.1)', border: 'rgba(163, 163, 163, 0.4)' },
+  HUMAN: { label: 'HUMAN', color: '#10B981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.4)' },
 };
 
 export default function ThreatsPage() {
@@ -95,7 +100,7 @@ export default function ThreatsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {items.map((probe) => {
-            const meta = ACTION_META[probe.action] || ACTION_META.block;
+            const meta = KIND_META[probe.kind] || KIND_META.HUMAN;
             return (
               <div key={probe.id} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>

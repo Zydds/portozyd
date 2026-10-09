@@ -7,8 +7,9 @@ const GATE_COOKIE = 'admin_gate';
 
 // ---------------------------------------------------------------------------
 // Admin IP gate (fail-closed): only ADMIN_ALLOWED_IPS (exact match) or a valid
-// ?k=ADMIN_DEVICE_TOKEN grant access. Unknown client IP = denied. Humans are
-// lured to the decoy page with a 302; bots get a 404 that confirms nothing.
+// ?k=ADMIN_DEVICE_TOKEN grant access. Unknown client IP = denied. Every denial
+// (bot, human, or fail-closed) is lured to the one honeypot page with a 302;
+// attack classification for the threat board is derived at read time.
 // ---------------------------------------------------------------------------
 
 function getClientIp(req) {
@@ -21,10 +22,14 @@ function isLoopback(ip) {
   return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
 }
 
-function isBot(req) {
-  const ua = req.headers.get('user-agent') || '';
-  if (!ua) return true;
-  return /curl|wget|python|scrapy|sqlmap|nikto|nmap|masscan|libwww|go-http-client|java\/|axios|node-fetch|okhttp|bot|crawler|spider|slurp|scanner|zgrab|httpx|headless/i.test(ua);
+// Single honeypot destination for every denial. Built defensively: if URL
+// construction throws (fail-closed path), fall back to a manual 302.
+function honeypotRedirect(req) {
+  try {
+    return NextResponse.redirect(new URL('/flag/restricted.html', req.nextUrl), 302);
+  } catch {
+    return new NextResponse(null, { status: 302, headers: { Location: '/flag/restricted.html' } });
+  }
 }
 
 // Constant-time-ish string compare (no early exit on first difference).
@@ -36,22 +41,29 @@ function safeEqual(a, b) {
 }
 
 // Fire-and-forget: threat board recording for denied probes. Never blocks or
-// fails the response; UA and path are truncated before storage.
+// fails the response; UA and path are truncated before storage. Path includes
+// the query string so payload probes classify too (only denied requests are
+// logged, so a correct ?k= token never lands here).
 function recordProbe(req, action, status, event) {
-  const ua = (req.headers.get('user-agent') || '').slice(0, 300) || null;
-  const p = prisma.probeLog
-    .create({
-      data: {
-        ip: getClientIp(req) || 'unknown',
-        path: req.nextUrl.pathname.slice(0, 500),
-        method: req.method,
-        status,
-        action,
-        userAgent: ua,
-      },
-    })
-    .catch(() => {});
-  if (event && typeof event.waitUntil === 'function') event.waitUntil(p);
+  try {
+    const ua = (req.headers.get('user-agent') || '').slice(0, 300) || null;
+    const target = (req.nextUrl.pathname + req.nextUrl.search).slice(0, 500);
+    const p = prisma.probeLog
+      .create({
+        data: {
+          ip: getClientIp(req) || 'unknown',
+          path: target,
+          method: req.method,
+          status,
+          action,
+          userAgent: ua,
+        },
+      })
+      .catch(() => {});
+    if (event && typeof event.waitUntil === 'function') event.waitUntil(p);
+  } catch {
+    // Logging must never break the response.
+  }
 }
 
 // Returns { deny } (send it) or { pass, tokenCookie } where tokenCookie is the
@@ -84,14 +96,12 @@ function enforceIpGate(req) {
 
     if (pass) return { pass: true, tokenCookie };
 
-    if (isBot(req)) {
-      return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
-    }
-    // Human lured to the static honeypot page (public/flag/restricted.html).
-    return { deny: NextResponse.redirect(new URL('/flag/restricted.html', req.nextUrl), 302), action: 'redirect', status: 302 };
+    // Every denial goes to the one honeypot page; attack type (bot/scanner/
+    // exploit/...) is classified from the logged evidence at read time.
+    return { deny: honeypotRedirect(req), action: 'redirect', status: 302 };
   } catch {
-    // Fail-closed: any error in the gate denies the request.
-    return { deny: NextResponse.json({ error: 'Not Found' }, { status: 404 }), action: 'block', status: 404 };
+    // Fail-closed: any error in the gate denies the request (also to the honeypot).
+    return { deny: honeypotRedirect(req), action: 'redirect', status: 302 };
   }
 }
 
@@ -134,9 +144,9 @@ export default auth((req, event) => {
   }
 
   if (path.startsWith('/api/admin/') && MUTATION_METHODS.includes(req.method) && !isSameOrigin(req)) {
-    // 404 (not 403) so unprobed endpoints don't confirm their existence.
-    recordProbe(req, 'origin', 404, event);
-    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    // Cross-origin mutation attempt: lured to the honeypot (logged as origin).
+    recordProbe(req, 'origin', 302, event);
+    return honeypotRedirect(req);
   }
 
   const isLoggedIn = !!req.auth;

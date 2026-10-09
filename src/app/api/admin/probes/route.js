@@ -8,6 +8,33 @@ async function requireAdmin() {
   return session;
 }
 
+// Read-time attack classification from logged evidence (path, UA, action).
+// Display-only: enforcement is a uniform 302 regardless of kind.
+const SCANNER_RE = /sqlmap|nikto|nmap|masscan|zgrab|nuclei|gobuster|feroxbuster|dirbuster|wpscan|acunetix|nessus|openvas|whatweb|arachni|xsstrike|commix|hydra|metasploit|burpsuite|zaproxy|httpx|scrapy/i;
+const BOT_RE = /curl|wget|python|scrapy|libwww|go-http-client|java\/|axios|node-fetch|okhttp|bot|crawler|spider|slurp|scanner|headless|phantomjs|puppeteer|playwright/i;
+const EXPLOIT_PATH_RE = /\.\.|%2e|\.env|\.git|wp-admin|wp-login|phpmyadmin|\.sql|\bbackup\b|etc\/passwd|id_rsa|\.aws|actuator|phpinfo|config\.php|shell|admin\.php|wp-content|vendor\/|\.bak|union\s*select|information_schema|\bsleep\s*\(|\bbenchmark\s*\(|\bor\b\s*1\s*=\s*1|<script|javascript:/i;
+
+function safeDecode(s) {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+function classifyProbe(row) {
+  if (row.action === 'origin') return 'CSRF';
+  // Decode first (%2e%2e, union%20select); NextURL may serialize spaces as
+  // '+', so treat '+' as space before matching payloads.
+  const target = safeDecode(row.path || '').replace(/\+/g, ' ');
+  if (EXPLOIT_PATH_RE.test(target)) return 'EXPLOIT';
+  const ua = row.userAgent || '';
+  if (!ua) return 'NO-UA';
+  if (SCANNER_RE.test(ua)) return 'SCANNER';
+  if (BOT_RE.test(ua)) return 'BOT';
+  return 'HUMAN';
+}
+
 export async function GET(request) {
   if (!(await requireAdmin())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -27,7 +54,7 @@ export async function GET(request) {
   ]);
 
   return NextResponse.json({
-    items,
+    items: items.map((row) => ({ ...row, kind: classifyProbe(row) })),
     total,
     page,
     limit,

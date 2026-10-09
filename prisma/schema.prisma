@@ -119,7 +119,7 @@ model ProbeLog {
   path      String
   method    String
   status    Int
-  action    String   // redirect (human 302 -> /flag/) | block (bot 404) | origin (cross-origin 404)
+  action    String   // redirect (gate denial -> /flag/) | origin (cross-origin -> /flag/) | block (legacy bot 404)
   userAgent String?
   createdAt DateTime @default(now())
 
