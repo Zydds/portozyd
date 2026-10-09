@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
+import { apiErrorResponse } from '@/lib/api-error';
 
 // GET: Return all site details for public or admin use
 export async function GET() {
@@ -12,8 +13,7 @@ export async function GET() {
     });
     return NextResponse.json({ details: detailsMap });
   } catch (err) {
-    console.error('Error in GET /api/admin/details:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in GET /api/admin/details:', err);
   }
 }
 
@@ -44,7 +44,6 @@ export async function PUT(request) {
 
     return NextResponse.json({ success: true, message: 'Details updated successfully' });
   } catch (err) {
-    console.error('Error in PUT /api/admin/details:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in PUT /api/admin/details:', err);
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
+import { apiErrorResponse } from '@/lib/api-error';
 
 export async function GET() {
   try {
@@ -16,8 +17,7 @@ export async function GET() {
 
     return NextResponse.json({ media: mediaList });
   } catch (err) {
-    console.error('Error in GET /api/admin/media:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in GET /api/admin/media:', err);
   }
 }
 
@@ -54,8 +54,7 @@ export async function POST(request) {
 
     return NextResponse.json({ media: newMedia });
   } catch (err) {
-    console.error('Error in POST /api/admin/media:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in POST /api/admin/media:', err);
   }
 }
 
@@ -74,7 +73,6 @@ export async function DELETE(request) {
     await prisma.media.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Error in DELETE /api/admin/media:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in DELETE /api/admin/media:', err);
   }
 }

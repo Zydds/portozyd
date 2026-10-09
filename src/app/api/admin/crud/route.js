@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
+import { apiErrorResponse } from '@/lib/api-error';
 
 function pick(obj, keys) {
   if (!obj || typeof obj !== 'object') return {};
@@ -67,8 +68,7 @@ export async function GET(request) {
     ]);
     return NextResponse.json({ skills, projects, experiences, messages, topicPages });
   } catch (err) {
-    console.error('Error in GET /api/admin/crud:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in GET /api/admin/crud:', err);
   }
 }
 
@@ -140,8 +140,7 @@ export async function POST(request) {
     }
     return NextResponse.json({ error: 'Invalid entity payload' }, { status: 400 });
   } catch (err) {
-    console.error('Error in POST /api/admin/crud:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in POST /api/admin/crud:', err);
   }
 }
 
@@ -201,8 +200,7 @@ export async function PUT(request) {
     }
     return NextResponse.json({ error: 'Invalid entity type' }, { status: 400 });
   } catch (err) {
-    console.error('Error in PUT /api/admin/crud:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in PUT /api/admin/crud:', err);
   }
 }
 
@@ -228,7 +226,6 @@ export async function DELETE(request) {
     }
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Error in DELETE /api/admin/crud:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in DELETE /api/admin/crud:', err);
   }
 }

@@ -10,6 +10,8 @@ export async function GET() {
   try {
     const user = await prisma.user.findFirst({
       where: { role: 'ADMIN' },
+      // Must match getSharedData()'s pick (original admin), not planner whim.
+      orderBy: { createdAt: 'asc' },
       select: {
         name: true,
         email: true,

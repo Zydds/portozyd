@@ -20,6 +20,10 @@ export async function getSharedData() {
     safe(
       prisma.user.findFirst({
         where: { role: 'ADMIN' },
+        // Deterministic pick: the original admin account (the one edited via
+        // /admin/profile). Without orderBy, findFirst returned whichever
+        // duplicate admin the planner liked, so saves never reached the landing page.
+        orderBy: { createdAt: 'asc' },
         select: {
           name: true,
           email: true,

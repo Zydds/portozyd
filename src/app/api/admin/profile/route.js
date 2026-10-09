@@ -1,7 +1,23 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
+import { apiErrorResponse } from '@/lib/api-error';
+
+// Users often paste bare domains ("github.com/Zydos"); safeUrl() returns null
+// for those, which silently wiped the field on save. Assume https:// first.
+function asSafeUrl(value) {
+  const direct = safeUrl(value);
+  if (direct) return direct;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || /\s/.test(trimmed)) return null;
+  if (/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+([/:?#].*)?$/i.test(trimmed)) {
+    return safeUrl('https://' + trimmed);
+  }
+  return null;
+}
 
 export async function GET() {
   try {
@@ -19,7 +35,7 @@ export async function GET() {
       user = await prisma.user.findUnique({ where: { email: session.user.email } });
     }
     if (!user) {
-      user = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+      user = await prisma.user.findFirst({ where: { role: 'ADMIN' }, orderBy: { createdAt: 'asc' } });
     }
 
     if (!user) {
@@ -41,8 +57,7 @@ export async function GET() {
       },
     });
   } catch (err) {
-    console.error('Error in GET /api/admin/profile:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in GET /api/admin/profile:', err);
   }
 }
 
@@ -62,7 +77,7 @@ export async function PUT(request) {
       targetUser = await prisma.user.findUnique({ where: { email: session.user.email } });
     }
     if (!targetUser) {
-      targetUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+      targetUser = await prisma.user.findFirst({ where: { role: 'ADMIN' }, orderBy: { createdAt: 'asc' } });
     }
 
     if (!targetUser) {
@@ -72,17 +87,25 @@ export async function PUT(request) {
     const body = await request.json();
     const { name, email, bio, avatar, location, website, linkedin, github } = body;
 
+    // email backs authentication: reject empty/obviously-invalid values that
+    // would lock the admin out (empty string used to be stored silently).
+    if (email !== undefined && email !== null) {
+      if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: targetUser.id },
       data: {
         ...(name !== undefined && { name }),
         ...(email !== undefined && { email }),
         ...(bio !== undefined && { bio }),
-        ...(avatar !== undefined && { avatar: safeUrl(avatar) }),
+        ...(avatar !== undefined && { avatar: asSafeUrl(avatar) }),
         ...(location !== undefined && { location }),
-        ...(website !== undefined && { website: safeUrl(website) }),
-        ...(linkedin !== undefined && { linkedin: safeUrl(linkedin) }),
-        ...(github !== undefined && { github: safeUrl(github) }),
+        ...(website !== undefined && { website: asSafeUrl(website) }),
+        ...(linkedin !== undefined && { linkedin: asSafeUrl(linkedin) }),
+        ...(github !== undefined && { github: asSafeUrl(github) }),
       },
       select: {
         id: true,
@@ -98,9 +121,15 @@ export async function PUT(request) {
       },
     });
 
+    // Landing/topic pages render this profile under the root layout's ISR;
+    // invalidate immediately so saves appear without waiting out revalidate=300.
+    revalidatePath('/', 'layout');
+
     return NextResponse.json({ user: updatedUser });
   } catch (err) {
-    console.error('Error in PUT /api/admin/profile:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    if (err?.code === 'P2002') {
+      return NextResponse.json({ error: 'That email address is already in use' }, { status: 409 });
+    }
+    return apiErrorResponse('Error in PUT /api/admin/profile:', err);
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import bcrypt from 'bcryptjs';
+import { apiErrorResponse } from '@/lib/api-error';
 
 export async function POST(request) {
   try {
@@ -19,7 +20,12 @@ export async function POST(request) {
         return NextResponse.json({ error: 'Both passwords required' }, { status: 400 });
       }
 
-      const user = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+      // Target the logged-in admin — findFirst() used to change whichever
+      // admin row came first (there are two in this DB).
+      let user = null;
+      if (session.user?.id) user = await prisma.user.findUnique({ where: { id: session.user.id } });
+      if (!user && session.user?.email) user = await prisma.user.findUnique({ where: { email: session.user.email } });
+      if (!user) user = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
       if (!user) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
@@ -40,7 +46,6 @@ export async function POST(request) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (err) {
-    console.error('Error in POST /api/admin/settings:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('Error in POST /api/admin/settings:', err);
   }
 }

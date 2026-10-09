@@ -19,6 +19,9 @@ const csp = [
 const nextConfig = {
   /* config options here */
   poweredByHeader: false,
+  // Fonts always fetch CORS-mode; preload links without crossorigin never
+  // match them (double download + "preloaded but not used" console warnings).
+  crossOrigin: 'anonymous',
   images: {
     // Only hosts our content actually uses; arbitrary admin URLs fail
     // over gracefully via each component's onError fallback.

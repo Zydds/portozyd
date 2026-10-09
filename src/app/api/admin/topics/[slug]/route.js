@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { apiErrorResponse } from '@/lib/api-error';
 
 export async function PUT(request, { params }) {
   const session = await auth();
@@ -10,33 +11,40 @@ export async function PUT(request, { params }) {
   }
 
   try {
+    // Next 16: params is a Promise — accessing .slug synchronously yielded
+    // undefined, so every topic save failed with a Prisma 500.
+    const { slug } = await params;
+    if (!slug) {
+      return NextResponse.json({ error: 'Missing topic slug' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { title, icon, intro, focusItems, toolsItems, highlights } = body;
+    const toList = (value) => (Array.isArray(value) ? value : String(value || '').split('\n').filter(Boolean));
 
     const updated = await prisma.topicPage.upsert({
-      where: { slug: params.slug },
+      where: { slug },
       update: {
         title,
         icon,
         intro,
-        focusItems: Array.isArray(focusItems) ? focusItems : focusItems.split('\n').filter(Boolean),
-        toolsItems: Array.isArray(toolsItems) ? toolsItems : toolsItems.split('\n').filter(Boolean),
-        highlights: Array.isArray(highlights) ? highlights : highlights.split('\n').filter(Boolean),
+        focusItems: toList(focusItems),
+        toolsItems: toList(toolsItems),
+        highlights: toList(highlights),
       },
       create: {
-        slug: params.slug,
+        slug,
         title,
         icon,
         intro,
-        focusItems: Array.isArray(focusItems) ? focusItems : focusItems.split('\n').filter(Boolean),
-        toolsItems: Array.isArray(toolsItems) ? toolsItems : toolsItems.split('\n').filter(Boolean),
-        highlights: Array.isArray(highlights) ? highlights : highlights.split('\n').filter(Boolean),
+        focusItems: toList(focusItems),
+        toolsItems: toList(toolsItems),
+        highlights: toList(highlights),
       },
     });
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
-    console.error('Failed to update topic page:', error);
-    return NextResponse.json({ error: 'Failed to update topic page' }, { status: 500 });
+    return apiErrorResponse('Error in PUT topic page:', error);
   }
 }

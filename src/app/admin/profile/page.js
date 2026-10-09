@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { FiUser, FiSave, FiUpload } from 'react-icons/fi';
@@ -12,13 +12,47 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [avatarError, setAvatarError] = useState(false);
+  const didLoadRef = useRef(false);
 
   useEffect(() => {
-    if (session?.user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setProfile({ name: session.user.name || '', email: session.user.email || '', role: session.user.role || 'ADMIN', bio: '', avatar: '', location: '', website: '', linkedin: '', github: '' });
+    // Session refocus/revalidation re-runs this effect; without the guard the
+    // refetch would overwrite any edits the admin has typed in the meantime.
+    if (didLoadRef.current) return;
+    let cancelled = false;
+    (async () => {
+      // Load the persisted profile — the session only carries id/name/email,
+      // so hardcoding '' here used to wipe every other field on save.
+      try {
+        const res = await fetch('/api/admin/profile');
+        if (res.ok) {
+          const data = await res.json();
+          const u = data.user;
+          if (u && !cancelled) {
+            didLoadRef.current = true;
+            setProfile({
+              name: u.name || '',
+              email: u.email || '',
+              role: u.role || 'ADMIN',
+              bio: u.bio || '',
+              avatar: u.avatar || '',
+              location: u.location || '',
+              website: u.website || '',
+              linkedin: u.linkedin || '',
+              github: u.github || '',
+            });
+            setLoading(false);
+            return;
+          }
+        }
+      } catch { /* fall through to session fallback */ }
+      if (cancelled) return;
+      didLoadRef.current = true;
+      if (session?.user) {
+        setProfile(prev => ({ ...prev, name: session.user.name || '', email: session.user.email || '', role: session.user.role || 'ADMIN' }));
+      }
       setLoading(false);
-    }
+    })();
+    return () => { cancelled = true; };
   }, [session]);
 
   const handleChange = (e) => {
