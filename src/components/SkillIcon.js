@@ -131,9 +131,57 @@ const localIconMap = {
   'uk': UKFlag,
 };
 
+// Official brand hexes (verified against cdn.simpleicons.org). Used whenever
+// the skill has no custom color chosen — so icons render in real brand colors
+// instead of the default indigo.
+const brandColorMap = {
+  'javascript': '#F7DF1E', 'js': '#F7DF1E',
+  'typescript': '#3178C6', 'ts': '#3178C6',
+  'python': '#3776AB',
+  'php': '#777BB4',
+  'react': '#61DAFB',
+  'nextjs': '#000000', 'next.js': '#000000', 'nextdotjs': '#000000',
+  'vuejs': '#4FC08D', 'vue.js': '#4FC08D', 'vuedotjs': '#4FC08D',
+  'nodejs': '#5FA04E', 'node.js': '#5FA04E', 'nodedotjs': '#5FA04E',
+  'tailwindcss': '#06B6D4', 'tailwind': '#06B6D4',
+  'wordpress': '#21759B',
+  'laravel': '#FF2D20',
+  'cypress': '#69D3A7',
+  'playwright': '#2EAD33',
+  'jest': '#C21325',
+  'postman': '#FF6C37',
+  'notion': '#000000',
+  'git': '#F03C2E',
+  'github': '#181717',
+  'jira': '#0052CC',
+  'gitlab': '#FC6D26',
+  'figma': '#F24E1E',
+  'docker': '#2496ED',
+  'kubernetes': '#326CE5',
+  'linux': '#FCC624',
+  'apple': '#000000',
+  'android': '#3DDC84',
+  'trello': '#0052CC',
+  'confluence': '#172B4D',
+  'raspberrypi': '#A22846',
+  'supabase': '#3FCF8E',
+  'beaker': null,
+};
+
+const DEFAULT_COLOR = '#6366F1';
+
+// Normalize any resolveIconColor output ("#hex" or "rgb(r,g,b)") to "RRGGBB".
+function toHex(color) {
+  if (!color) return DEFAULT_COLOR.replace('#', '');
+  if (color.startsWith('#')) return color.slice(1);
+  const m = color.match(/(\d+)\D+(\d+)\D+(\d+)/);
+  if (m) return [m[1], m[2], m[3]].map(n => (+n).toString(16).padStart(2, '0')).join('');
+  return DEFAULT_COLOR.replace('#', '');
+}
+
 // Returns a color that meets WCAG AA contrast on white (#FFFFFF) and dark (#0A0A0A) backgrounds
 function resolveIconColor(color, theme) {
-  if (!color || color === '#6366F1') return theme === 'light' ? '#4F46E5' : '#6366F1';
+  if (!color || color === DEFAULT_COLOR) return theme === 'light' ? '#4F46E5' : DEFAULT_COLOR;
 
   // Parse hex
   const hex = color.replace('#', '');
@@ -155,26 +203,34 @@ function resolveIconColor(color, theme) {
   }
 
   if (theme === 'dark' && lum < 0.25) {
-    const factor = 1.4;
-    const nr = Math.min(255, Math.round(r * factor));
-    const ng = Math.min(255, Math.round(g * factor));
-    const nb = Math.min(255, Math.round(b * factor));
+    // Near-black brand logos (GitHub, Next.js, Notion, Apple…) must become
+    // light in dark mode — multiplying black by any factor keeps it black.
+    if (Math.max(r, g, b) < 40) return '#E6E8EE';
+    // Blend toward white until the color is clearly visible on dark.
+    const t = Math.min(0.85, (0.45 - lum) / (1 - lum));
+    const nr = Math.round(r + (255 - r) * t);
+    const ng = Math.round(g + (255 - g) * t);
+    const nb = Math.round(b + (255 - b) * t);
     return `rgb(${nr},${ng},${nb})`;
   }
 
   return color;
 }
 
-export default function SkillIcon({ name = '', iconKey = '', color = '#6366F1', size = 32, style = {} }) {
+export default function SkillIcon({ name = '', iconKey = '', color = DEFAULT_COLOR, size = 32, style = {} }) {
   const [imgError, setImgError] = useState(false);
   const { theme } = useTheme();
-
-  const resolvedColor = useMemo(() => resolveIconColor(color, theme), [color, theme]);
 
   // Normalize lookups
   const lookupKey = (iconKey || name).toLowerCase().trim();
   const slug = lookupKey.replace(/[^a-z0-9]/g, '');
-  const hexColor = (resolvedColor || '#6366F1').replace('#', '');
+
+  // No custom color chosen (#6366F1 = form default) → render the real brand color.
+  const brandColor = brandColorMap[lookupKey] ?? brandColorMap[slug] ?? null;
+  const baseColor = (!color || color === DEFAULT_COLOR) && brandColor ? brandColor : color;
+
+  const resolvedColor = useMemo(() => resolveIconColor(baseColor, theme), [baseColor, theme]);
+  const hexColor = toHex(resolvedColor);
 
   // 1. Direct local React-Icon or Custom SVG
   const LocalIcon = localIconMap[lookupKey] || localIconMap[slug];
@@ -198,19 +254,25 @@ export default function SkillIcon({ name = '', iconKey = '', color = '#6366F1', 
     }
   }
 
-  // 3. SimpleIcons CDN
-  if (!imgError && slug) {
-    const cdnUrl = `https://cdn.simpleicons.org/${slug}/${hexColor}`;
-    return (
-      <Image
-        src={cdnUrl}
-        alt={name}
-        width={size}
-        height={size}
-        onError={() => setImgError(true)}
-        style={{ width: `${size}px`, height: `${size}px`, objectFit: 'contain', ...style }}
-      />
-    );
+  // 3. SimpleIcons CDN — only for an explicit iconKey, never for display names
+  // (otherwise the preview card probes cdn.simpleicons.org/preview → 404 noise).
+  if (!imgError && iconKey) {
+    const cdnSlug = iconKey.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+    if (cdnSlug) {
+      const cdnUrl = (!color || color === DEFAULT_COLOR)
+        ? `https://cdn.simpleicons.org/${cdnSlug}`
+        : `https://cdn.simpleicons.org/${cdnSlug}/${hexColor}`;
+      return (
+        <Image
+          src={cdnUrl}
+          alt={name}
+          width={size}
+          height={size}
+          onError={() => setImgError(true)}
+          style={{ width: `${size}px`, height: `${size}px`, objectFit: 'contain', ...style }}
+        />
+      );
+    }
   }
 
   // 4. Monogram Badge Fallback

@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiUpload, FiTrash2, FiCopy, FiCheck, FiExternalLink, FiImage } from 'react-icons/fi';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 export default function MediaPage() {
+  const confirmDialog = useConfirm();
   const router = useRouter();
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export default function MediaPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure?')) return;
+    if (!(await confirmDialog('Delete this media asset?', { danger: true, confirmText: 'Delete' }))) return;
     try {
       const res = await fetch('/api/admin/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
       if (res.ok) fetchMedia();

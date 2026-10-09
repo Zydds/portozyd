@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 const ACTION_META = {
   redirect: { label: 'HUMAN 302', color: 'var(--accent-dim)', bg: 'rgba(58, 76, 255, 0.1)', border: 'var(--accent)' },
@@ -10,6 +11,7 @@ const ACTION_META = {
 };
 
 export default function ThreatsPage() {
+  const confirmDialog = useConfirm();
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -46,6 +48,7 @@ export default function ThreatsPage() {
   }, [page, fetchProbes]);
 
   const deleteProbe = async (id) => {
+    if (!(await confirmDialog('Delete this probe log entry?', { danger: true, confirmText: 'Delete' }))) return;
     await fetch('/api/admin/probes', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -56,7 +59,7 @@ export default function ThreatsPage() {
   };
 
   const clearAll = async () => {
-    if (!confirm('Clear ALL probe logs?')) return;
+    if (!(await confirmDialog('Clear ALL probe logs? This cannot be undone.', { danger: true, confirmText: 'Clear All' }))) return;
     await fetch('/api/admin/probes', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },

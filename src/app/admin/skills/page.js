@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import SkillIcon from '@/components/SkillIcon';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 export default function SkillsPage() {
+  const confirmDialog = useConfirm();
   const router = useRouter();
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +41,8 @@ export default function SkillsPage() {
     } catch { setMessage('Failed to send request'); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this skill?')) return;
+  const handleDelete = async (id, name) => {
+    if (!(await confirmDialog(`Delete "${name || 'this skill'}"?`, { danger: true, confirmText: 'Delete' }))) return;
     try {
       const res = await fetch('/api/admin/crud', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entity: 'skill', id }) });
       if (res.status === 401) { router.push('/admin/login'); return; }
@@ -65,18 +67,46 @@ export default function SkillsPage() {
             {['Languages', 'Frameworks & Libraries', 'Testing & QA Tools', 'Tools & Productivity', 'Soft Skills'].map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <div>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>Choose Icon or Enter Slug</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))', gap: '6px', maxHeight: '100px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px', background: 'var(--bg)', marginBottom: '8px' }}>
+            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Choose Icon</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(48px, 1fr))', gap: '8px', maxHeight: '150px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px', background: 'var(--bg)', marginBottom: '10px' }}>
               {[
                 { label: 'JavaScript', icon: 'SiJavascript' }, { label: 'TypeScript', icon: 'SiTypescript' }, { label: 'Python', icon: 'SiPython' }, { label: 'PHP', icon: 'SiPhp' }, { label: 'React', icon: 'SiReact' }, { label: 'Next.js', icon: 'SiNextdotjs' }, { label: 'Vue.js', icon: 'SiVuedotjs' }, { label: 'Node.js', icon: 'SiNodedotjs' }, { label: 'Tailwind', icon: 'SiTailwindcss' }, { label: 'WordPress', icon: 'SiWordpress' }, { label: 'Laravel', icon: 'SiLaravel' }, { label: 'Cypress', icon: 'SiCypress' }, { label: 'Playwright', icon: 'VscBeaker' }, { label: 'Jest', icon: 'SiJest' }, { label: 'Postman', icon: 'SiPostman' }, { label: 'Notion', icon: 'SiNotion' }, { label: 'Git', icon: 'SiGit' }, { label: 'GitHub', icon: 'SiGithub' }, { label: 'Jira', icon: 'SiJira' }, { label: 'Figma', icon: 'SiFigma' }, { label: 'Docker', icon: 'SiDocker' }, { label: 'Kubernetes', icon: 'SiKubernetes' }, { label: 'Linux', icon: 'SiLinux' }, { label: 'Apple', icon: 'SiApple' }, { label: 'Android', icon: 'SiAndroid' }, { label: 'Trello', icon: 'SiTrello' }, { label: 'Confluence', icon: 'SiConfluence' }, { label: 'Office', icon: 'SiApacheopenoffice' }, { label: 'Canva', icon: 'SiCanva' }, { label: 'Beaker', icon: 'VscBeaker' },
-              ].map(({ label }) => (
-                <button key={label} type="button" onClick={() => setFormData({ ...formData, iconKey: label })} style={{ background: formData.iconKey === label ? 'var(--accent)' : 'transparent', border: formData.iconKey === label ? '2px solid var(--accent)' : '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-primary)', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={label}>{label.slice(0, 2)}</button>
-              ))}
+              ].map(({ label }) => {
+                const selected = formData.iconKey === label;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, iconKey: label })}
+                    title={label}
+                    aria-pressed={selected}
+                    style={{
+                      minHeight: '44px',
+                      background: selected ? 'rgba(58, 76, 255, 0.12)' : 'transparent',
+                      border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <SkillIcon name={label} iconKey={label} color={formData.color} size={22} />
+                  </button>
+                );
+              })}
             </div>
-            <input placeholder="Or type custom SimpleIcon slug (e.g. gitlab, supabase, linear, rust)" value={formData.iconKey} onChange={e => setFormData({ ...formData, iconKey: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.8125rem' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Live Preview:</span>
-              <SkillIcon name={formData.name || 'Preview'} iconKey={formData.iconKey} color={formData.color} size={24} />
+            <input placeholder="Or type a custom SimpleIcons slug (e.g. gitlab, supabase, linear, rust)" value={formData.iconKey} onChange={e => setFormData({ ...formData, iconKey: e.target.value })} style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.8125rem', marginBottom: '10px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 14px', border: '1px dashed var(--border-strong)', borderRadius: '8px', background: 'var(--bg)' }}>
+              <SkillIcon name={formData.name || 'Preview'} iconKey={formData.iconKey} color={formData.color} size={40} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {formData.name || 'Untitled skill'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {formData.iconKey ? `icon: ${formData.iconKey}` : 'no icon selected'}
+                </div>
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -85,7 +115,7 @@ export default function SkillsPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="submit" style={{ padding: '10px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Save</button>
-            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+            <button type="button" onClick={() => setShowForm(false)} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>Cancel</button>
           </div>
         </form>
       )}
@@ -97,7 +127,7 @@ export default function SkillsPage() {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{skill.category}</span>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               <button onClick={() => { setEditing(skill); setFormData({ name: skill.name, category: skill.category, iconKey: skill.iconKey || '', color: skill.color || '#6366F1' }); setShowForm(true); }} style={{ fontSize: '0.75rem', color: 'var(--accent-dim)', background: 'transparent', border: 'none', cursor: 'pointer' }}>Edit</button>
-              <button onClick={() => handleDelete(skill.id)} style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', background: 'transparent', border: 'none', cursor: 'pointer' }}>Delete</button>
+              <button onClick={() => handleDelete(skill.id, skill.name)} style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', background: 'transparent', border: 'none', cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         ))}

@@ -23,21 +23,34 @@ const navItems = [
   { label: 'Settings', href: '/admin/settings', icon: RiSettings4Line },
 ];
 
-export default function AdminSidebar({ open = false, onClose = () => {} }) {
+export default function AdminSidebar({ open = false, onClose = () => {}, collapsed = false, onCollapse = () => {} }) {
   const pathname = usePathname();
 
   return (
-    <aside id="admin-sidebar" className={`admin-sidebar${open ? ' open' : ''}`} style={{
+    <aside id="admin-sidebar" className={`admin-sidebar${open ? ' open' : ''}${collapsed ? ' collapsed' : ''}`} style={{
       width: '260px',
       backgroundColor: 'var(--bg-raised, #131316)',
       borderRight: '1px solid var(--border-strong, #33333a)',
-      display: 'flex',
-      flexDirection: 'column',
     }}>
-      <div style={{ padding: '24px', borderBottom: '1px solid var(--border-strong, #33333a)' }}>
-        <h2 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 600, fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+      <div style={{ position: 'relative', padding: '20px 16px', borderBottom: '1px solid var(--border-strong, #33333a)', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'var(--font-spectral, serif)', fontStyle: 'italic', fontWeight: 600, fontSize: '1.25rem', color: 'var(--text-primary)', margin: 0 }}>
           ZYD Admin
         </h2>
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label="Hide sidebar"
+          title="Hide sidebar"
+          style={{
+            position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '30px', height: '30px', padding: 0,
+            background: 'transparent', border: '1px solid var(--border, #232327)',
+            borderRadius: '6px', color: 'var(--text-tertiary)', cursor: 'pointer',
+          }}
+        >
+          <RiArrowLeftLine size={16} />
+        </button>
       </div>
 
       <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>

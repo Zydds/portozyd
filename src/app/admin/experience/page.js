@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 export default function ExperiencePage() {
+  const confirmDialog = useConfirm();
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ export default function ExperiencePage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this experience entry?')) return;
+    if (!(await confirmDialog('Delete this experience entry?', { danger: true, confirmText: 'Delete' }))) return;
     try {
       const res = await fetch('/api/admin/crud', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entity: 'experience', id }) });
       if (res.status === 401) { router.push('/admin/login'); return; }

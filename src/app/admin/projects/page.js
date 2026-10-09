@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 export default function ProjectsPage() {
+  const confirmDialog = useConfirm();
   const router = useRouter();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +124,7 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (id, title) => {
-    if (!confirm(`Delete project "${title}"?`)) return;
+    if (!(await confirmDialog(`Delete project "${title}"?`, { danger: true, confirmText: 'Delete' }))) return;
     try {
       const res = await fetch('/api/admin/crud', {
         method: 'DELETE',

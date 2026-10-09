@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 const PAGE_SIZE = 10;
 
 export default function InboxPage() {
+  const confirmDialog = useConfirm();
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -47,7 +49,7 @@ export default function InboxPage() {
   };
 
   const deleteMessage = async (id) => {
-    if (!confirm('Delete this message?')) return;
+    if (!(await confirmDialog('Delete this message?', { danger: true, confirmText: 'Delete' }))) return;
     await fetch('/api/admin/inbox', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },

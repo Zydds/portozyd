@@ -1,14 +1,25 @@
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 
 export const revalidate = 0; // Fresh counts on mount
 
 export default async function AdminDashboard() {
-  const [projectCount, topicCount, messageCount, skillCount, experienceCount] = await Promise.all([
+  // revalidate=0 → runs per request, so a fresh window is intended here.
+  // eslint-disable-next-line react-hooks/purity
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [
+    projectCount, topicCount, messageCount, skillCount, experienceCount,
+    probeTotal, probe24h, botsBlocked, uniqueIps,
+  ] = await Promise.all([
     prisma.project.count(),
     prisma.topicPage.count(),
     prisma.contactMessage.count(),
     prisma.skill.count(),
     prisma.experience.count(),
+    prisma.probeLog.count(),
+    prisma.probeLog.count({ where: { createdAt: { gte: dayAgo } } }),
+    prisma.probeLog.count({ where: { action: 'block' } }),
+    prisma.probeLog.groupBy({ by: ['ip'] }),
   ]);
 
   const stats = [
@@ -17,6 +28,9 @@ export default async function AdminDashboard() {
     { label: 'Experience', value: experienceCount, meta: 'career roles' },
     { label: 'Topic Pages', value: topicCount, meta: 'landing routes' },
     { label: 'Messages', value: messageCount, meta: 'contact submissions' },
+    { label: 'Threats', value: probeTotal, meta: `${uniqueIps.length} unique IPs` },
+    { label: 'Last 24h', value: probe24h, meta: 'probes logged' },
+    { label: 'Bots Blocked', value: botsBlocked, meta: 'bot 404s' },
   ];
 
   return (
@@ -60,6 +74,9 @@ export default async function AdminDashboard() {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.7 }}>
           Your CMS is connected to Neon PostgreSQL. Managing content across projects, topic pages, and inbox messages will update this dashboard in real-time.
         </p>
+        <Link href="/admin/threats" style={{ display: 'inline-block', marginTop: '14px', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem', color: 'var(--accent-dim, #7C88FF)' }}>
+          View Threat Board →
+        </Link>
       </div>
     </div>
   );
