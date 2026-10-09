@@ -3,13 +3,25 @@ import { prisma } from '@/lib/prisma';
 
 export const revalidate = 0; // Fresh counts on mount
 
+// Rolling window for ProbeLog: bounds table growth and keeps the stats below
+// window-relative (probes are inserted on every public request, unbounded).
+const PROBE_WINDOW_DAYS = 30;
+
 export default async function AdminDashboard() {
   // revalidate=0 → runs per request, so a fresh window is intended here.
   // eslint-disable-next-line react-hooks/purity
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  // eslint-disable-next-line react-hooks/purity
+  const windowStart = new Date(Date.now() - PROBE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  try {
+    // Indexed on createdAt; runs before the counts so stats exclude pruned rows.
+    await prisma.probeLog.deleteMany({ where: { createdAt: { lt: windowStart } } });
+  } catch (err) {
+    console.error('[admin-dashboard] ProbeLog prune failed:', err);
+  }
   const [
     projectCount, topicCount, messageCount, skillCount, experienceCount,
-    probeTotal, probe24h, botsBlocked, uniqueIps,
+    probeTotal, probe24h, botsBlocked, uniqueIpRows,
   ] = await Promise.all([
     prisma.project.count(),
     prisma.topicPage.count(),
@@ -19,8 +31,11 @@ export default async function AdminDashboard() {
     prisma.probeLog.count(),
     prisma.probeLog.count({ where: { createdAt: { gte: dayAgo } } }),
     prisma.probeLog.count({ where: { action: 'block' } }),
-    prisma.probeLog.groupBy({ by: ['ip'] }),
+    // COUNT(DISTINCT ip) in SQL: the old groupBy({ by: ['ip'] }) shipped every
+    // distinct IP row to the app just to call .length on it.
+    prisma.$queryRaw`SELECT COUNT(DISTINCT ip)::int AS count FROM "ProbeLog"`,
   ]);
+  const uniqueIps = uniqueIpRows[0]?.count ?? 0;
 
   const stats = [
     { label: 'Projects', value: projectCount, meta: 'case studies' },
@@ -28,7 +43,7 @@ export default async function AdminDashboard() {
     { label: 'Experience', value: experienceCount, meta: 'career roles' },
     { label: 'Topic Pages', value: topicCount, meta: 'landing routes' },
     { label: 'Messages', value: messageCount, meta: 'contact submissions' },
-    { label: 'Threats', value: probeTotal, meta: `${uniqueIps.length} unique IPs` },
+    { label: 'Threats', value: probeTotal, meta: `${uniqueIps} unique IPs` },
     { label: 'Last 24h', value: probe24h, meta: 'probes logged' },
     { label: 'Bots Blocked', value: botsBlocked, meta: 'bot 404s' },
   ];
