@@ -31,13 +31,14 @@ npm run dev          # next dev (port 3000; dev may occupy 3001 in this workspac
 npm run build        # prisma generate && next build
 npm run start        # next start
 npm run lint         # eslint . — must be clean
+npm run smoke        # scripts/smoke.ps1 — full lint + build + curl E2E (add -SkipBuild for warm re-runs)
 npx prisma db push   # apply schema.prisma to Neon (ALWAYS this, never migrate)
 ```
 
 **Standard verification loop** (run before considering any task done):
 1. `npm run lint` → 0/0
 2. `npm run build` → clean (never build while a dev server holds `.next` — kill it first)
-3. Smoke-test: `next start -p 3000` → curl pages/APIs → kill process
+3. `npm run smoke` → codified login/landing/details E2E (or manual smoke: `next start -p 3000` → curl pages/APIs → kill process)
 
 **Testing admin APIs with curl** (all three are required):
 - Auth: login flow via `/api/auth/csrf` → `POST /api/auth/callback/credentials` with cookie jar + `Origin: http://localhost:<port>`

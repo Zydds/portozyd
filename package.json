@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\smoke.ps1"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
