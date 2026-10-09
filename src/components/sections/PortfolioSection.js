@@ -2,66 +2,33 @@
 
 import Image from 'next/image';
 
-const placeholderProjects = [
-  {
-    id: 'p1',
-    title: 'E-Commerce Dashboard',
-    slug: 'ecommerce-dashboard',
-    category: 'web',
-    description: 'Real-time sales analytics and inventory management interface with Next.js & Tailwind CSS.',
-    imageUrl: '',
-    demoUrl: '#',
-    githubUrl: '#',
-    featured: true,
-  },
-  {
-    id: 'p2',
-    title: 'QA Automation Test Suite',
-    slug: 'qa-automation-suite',
-    category: 'qa',
-    description: 'Comprehensive end-to-end regression and integration testing pipeline with Cypress & Playwright.',
-    imageUrl: '',
-    demoUrl: '#',
-    githubUrl: '#',
-    featured: true,
-  },
-  {
-    id: 'p3',
-    title: 'Agile Sprint Tracker',
-    slug: 'agile-sprint-tracker',
-    category: 'pm',
-    description: 'Kanban-based project planning and sprint retrospective workspace with automated Jira sync.',
-    imageUrl: '',
-    demoUrl: '#',
-    githubUrl: '#',
-    featured: false,
-  },
-];
-
-export default function PortfolioSection({ projects = [] }) {
-  const hasDbProjects = projects.length > 0;
-  const shown = hasDbProjects ? projects.slice(0, 3) : placeholderProjects;
-  const totalCount = hasDbProjects ? projects.length : placeholderProjects.length;
+export default function PortfolioSection({ projects = [], details = {} }) {
+  const sectionTitle = details.portfolio_title || 'Portfolio';
+  const metaSuffix = details.portfolio_meta || 'top 3 featured';
+  const emptyText = details.portfolio_empty || 'No projects published yet.';
+  const shown = projects.slice(0, 3);
+  const totalCount = projects.length;
 
   return (
     <section id="portfolio" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>
       <div className="wrap">
         <div className="bar">
           <div className="bar-title">
-            <h2>Portfolio</h2>
+            <h2>{sectionTitle}</h2>
           </div>
-          <span className="meta">{totalCount} projects · top 3 featured</span>
+          {totalCount > 0 && <span className="meta">{totalCount} projects · {metaSuffix}</span>}
         </div>
 
         {shown.length === 0 ? (
           <div style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', borderRadius: '8px', padding: '48px', textAlign: 'center' }}>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', margin: 0 }}>No projects published yet.</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', margin: 0 }}>{emptyText}</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
             {shown.map((proj) => (
               <div
                 key={proj.id || proj.slug}
+                className="glow-hover"
                 style={{
                   background: 'var(--bg-raised)',
                   border: '1px solid var(--border)',
@@ -70,7 +37,6 @@ export default function PortfolioSection({ projects = [] }) {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  transition: 'border-color 0.2s ease, transform 0.2s ease',
                 }}
               >
                 <div>

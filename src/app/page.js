@@ -1,6 +1,7 @@
 import { getHomeData } from '@/lib/home-data';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Reveal from '@/components/Reveal';
 import HeroSection from '@/components/sections/HeroSection';
 import AboutSection from '@/components/sections/AboutSection';
 import ExperienceSection from '@/components/sections/ExperienceSection';
@@ -17,17 +18,17 @@ export default async function Home() {
     <>
       <Header />
       <main style={{ paddingTop: '64px' }}>
-        <HeroSection />
+        <HeroSection details={details} profile={profile} />
         <div className="wrap"><div className="divider"></div></div>
-        <AboutSection details={details} />
+        <Reveal><AboutSection details={details} /></Reveal>
         <div className="wrap"><div className="divider"></div></div>
-        <ExperienceSection experiences={experiences} />
+        <Reveal><ExperienceSection experiences={experiences} details={details} /></Reveal>
         <div className="wrap"><div className="divider"></div></div>
-        <SkillsSection skills={skills} />
+        <Reveal><SkillsSection skills={skills} details={details} /></Reveal>
         <div className="wrap"><div className="divider"></div></div>
-        <PortfolioSection projects={projects} />
+        <Reveal><PortfolioSection projects={projects} details={details} /></Reveal>
         <div className="wrap"><div className="divider"></div></div>
-        <ContactSection profile={profile} details={details} />
+        <Reveal><ContactSection profile={profile} details={details} /></Reveal>
       </main>
       <Footer profile={profile} details={details} />
     </>

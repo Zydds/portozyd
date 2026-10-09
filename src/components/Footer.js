@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { RiGithubLine, RiLinkedinLine, RiMailLine } from 'react-icons/ri';
+import { RiGithubLine, RiLinkedinLine, RiMailLine, RiFacebookLine, RiInstagramLine, RiTwitterXLine, RiTelegramLine, RiDiscordLine } from 'react-icons/ri';
 
 const quickLinks = [
   { label: 'Home', href: '#home' },
@@ -30,10 +30,20 @@ const linkStyle = {
 export default function Footer({ profile = {}, details = {} }) {
   const footerQuote = details.footer_quote ||
     'Building reliable software and quality-driven web experiences. Always learning, always improving.';
+  const footerBrand = details.footer_brand || 'ZYD';
+  const withProtocol = (url) => (/^https?:\/\//i.test(url) ? url : `https://${url}`);
+  const detailsSocials = [
+    { icon: RiFacebookLine, url: details.social_facebook_url, label: 'Facebook' },
+    { icon: RiInstagramLine, url: details.social_instagram_url, label: 'Instagram' },
+    { icon: RiTwitterXLine, url: details.social_x_url, label: 'X' },
+    { icon: RiTelegramLine, url: details.social_telegram_url, label: 'Telegram' },
+    { icon: RiDiscordLine, url: details.social_discord_url, label: 'Discord' },
+  ].filter((s) => s.url);
   const socialLinks = [
     { icon: RiGithubLine, href: profile.github || 'https://github.com/Zydos', label: 'GitHub' },
     { icon: RiLinkedinLine, href: profile.linkedin || 'https://linkedin.com/in/zaidan-ghiffari', label: 'LinkedIn' },
     { icon: RiMailLine, href: profile.email ? `mailto:${profile.email}` : 'mailto:contact@zaidanghiffari.my.id', label: 'Email' },
+    ...detailsSocials.map((s) => ({ icon: s.icon, href: withProtocol(s.url), label: s.label })),
   ];
 
   return (
@@ -61,7 +71,7 @@ export default function Footer({ profile = {}, details = {} }) {
               color: 'var(--text-primary)',
               textDecoration: 'none',
             }}>
-              ZYD
+              {footerBrand}
             </Link>
             <p style={{
               fontSize: '0.88rem',

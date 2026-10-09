@@ -18,6 +18,8 @@ export default function ContactSection({ profile = {}, details = {} }) {
   const [status, setStatus] = useState(null);
 
   const intro = details.contact_intro || defaultIntro;
+  const sectionTitle = details.contact_title || 'Get in touch';
+  const formMeta = details.contact_form_meta || 'form open';
   const contactList = [
     { icon: RiMailLine, label: 'Email', value: profile.email || defaultInfo[0].value, href: profile.email ? `mailto:${profile.email}` : defaultInfo[0].href },
     { icon: RiGithubLine, label: 'GitHub', value: profile.github ? profile.github.replace(/^https?:\/\//, '') : defaultInfo[1].value, href: profile.github || defaultInfo[1].href },
@@ -50,9 +52,9 @@ export default function ContactSection({ profile = {}, details = {} }) {
       <div className="wrap">
         <div className="bar">
           <div className="bar-title">
-            <h2>Get in touch</h2>
+            <h2>{sectionTitle}</h2>
           </div>
-          <span className="meta">form open</span>
+          <span className="meta">{formMeta}</span>
         </div>
 
         <div className="contact-grid">

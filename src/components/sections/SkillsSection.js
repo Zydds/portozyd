@@ -62,15 +62,16 @@ function buildCategoriesFromDB(skills) {
   return Object.entries(map).map(([title, skills]) => ({ title, skills }));
 }
 
-export default function SkillsSection({ skills = [] }) {
+export default function SkillsSection({ skills = [], details = {} }) {
   const categories = skills.length > 0 ? buildCategoriesFromDB(skills) : placeholderCategories;
+  const sectionTitle = details.skills_title || 'Skills & Technologies';
 
   return (
     <section id="skills" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>
       <div className="wrap">
         <div className="bar">
           <div className="bar-title">
-            <h2>Skills &amp; Technologies</h2>
+            <h2>{sectionTitle}</h2>
           </div>
           <span className="meta">{categories.reduce((n, g) => n + g.skills.length, 0)} listed</span>
         </div>
@@ -80,7 +81,7 @@ export default function SkillsSection({ skills = [] }) {
             <div className="skill-label">{title.toLowerCase()}</div>
             <div className="skill-row">
               {skills.map(skill => (
-                <div className="skill-cell" key={skill.name}>
+                <div className="skill-cell glow-hover" key={skill.name}>
                   <SkillIcon name={skill.name} iconKey={skill.iconKey} color={skill.color} size={20} />
                   {skill.name}
                 </div>

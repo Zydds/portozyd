@@ -1,4 +1,4 @@
-export default function ExperienceSection({ experiences = [] }) {
+export default function ExperienceSection({ experiences = [], details = {} }) {
   const items = experiences.map(e => ({
     title: e.title,
     company: e.company,
@@ -6,13 +6,14 @@ export default function ExperienceSection({ experiences = [] }) {
     description: e.description,
     tags: e.tags || [],
   }));
+  const sectionTitle = details.experience_title || 'Experience';
 
   return (
     <section id="experience" style={{ padding: 'clamp(48px, 7vw, 80px) 0', position: 'relative', zIndex: 2 }}>
       <div className="wrap">
         <div className="bar">
           <div className="bar-title">
-            <h2>Experience</h2>
+            <h2>{sectionTitle}</h2>
           </div>
           <span className="meta">{items.length} roles</span>
         </div>

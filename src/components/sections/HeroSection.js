@@ -1,21 +1,33 @@
 import Link from 'next/link';
 
-export default function HeroSection() {
+export default function HeroSection({ details = {}, profile = {} }) {
+  const name = profile.name || 'Zaidan Ghiffari Azhar';
+  const tagline = details.hero_tagline || "I test software until it breaks, then build the parts that shouldn't.";
+  const based = profile.location || 'Bandung, ID';
+  const focus = details.hero_focus || 'QA, Web Development, Project Management';
+  const status = details.hero_status || 'open to work';
+  const primaryLabel = details.hero_cta_primary_label || 'View my work';
+  const primaryHref = details.hero_cta_primary_href || '#contact';
+  const secondaryLabel = details.hero_cta_secondary_label || 'Get in touch';
+  const secondaryHref = details.hero_cta_secondary_href || '#about';
+  const videoUrl = details.hero_video_url || '/videos/me-static.mp4';
+  const poster = details.hero_poster_url || '/videos/me-static-poster.webp';
+
   return (
     <section className="wrap hero">
       <div>
-        <h1>Zaidan Ghiffari Azhar</h1>
+        <h1>{name}</h1>
         <p className="hero-role">
-          I test software until it breaks, then build the parts that shouldn&apos;t.{' '}
+          {tagline}{' '}
         </p>
         <div className="hero-meta">
-          <span><b>Based</b> Bandung, ID</span>
-          <span><b>Focus</b> QA, Web Development, Project Management</span>
-          <span><b>Status</b> open to work</span>
+          <span><b>Based</b> {based}</span>
+          <span><b>Focus</b> {focus}</span>
+          <span><b>Status</b> {status}</span>
         </div>
         <div className="hero-ctas">
-          <Link href="#contact" className="btn btn-primary">View my work</Link>
-          <Link href="#about" className="btn btn-ghost">Get in touch</Link>
+          <Link href={primaryHref} className="btn btn-primary">{primaryLabel}</Link>
+          <Link href={secondaryHref} className="btn btn-ghost">{secondaryLabel}</Link>
         </div>
       </div>
       <div className="dither-panel hero-visual">
@@ -25,7 +37,8 @@ export default function HeroSection() {
           muted
           playsInline
           preload="metadata"
-          poster="/videos/me-static-poster.webp"
+          poster={poster}
+          src={videoUrl}
           aria-hidden="true"
           suppressHydrationWarning
           style={{
@@ -34,9 +47,7 @@ export default function HeroSection() {
             objectFit: 'contain',
             display: 'block',
           }}
-        >
-          <source src="/videos/me-static.mp4" type="video/mp4" />
-        </video>
+        />
         <div
           style={{
             position: 'absolute',
