@@ -85,6 +85,9 @@ model Media {
   publicId  String   @unique
   mimeType  String?
   size      Int?
+  source    String   @default("link") // "upload" (Cloudinary) | "link" (external)
+  width     Int?
+  height    Int?
   createdAt DateTime @default(now())
 }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useConfirm } from '@/components/admin/ConfirmProvider';
+import { MediaField } from '@/components/admin/ImagePicker';
 
 export default function ProjectsPage() {
   const confirmDialog = useConfirm();
@@ -259,12 +260,11 @@ export default function ProjectsPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)', marginBottom: '6px' }}>Image URL</label>
-              <input
-                placeholder="https://example.com/cover.jpg"
+              <label style={{ display: 'block', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)', marginBottom: '6px' }}>Image</label>
+              <MediaField
                 value={formData.imageUrl}
-                onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-strong)', borderRadius: '6px', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+                onChange={(v) => setFormData({ ...formData, imageUrl: v })}
+                placeholder="https://example.com/cover.jpg"
               />
             </div>
 

@@ -4,11 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { FiUser, FiSave, FiUpload } from 'react-icons/fi';
+import { MediaField } from '@/components/admin/ImagePicker';
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [profile, setProfile] = useState({ name: '', email: '', role: 'ADMIN', bio: '', avatar: '', location: '', website: '', linkedin: '', github: '' });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [avatarError, setAvatarError] = useState(false);
@@ -63,14 +65,25 @@ export default function ProfilePage() {
     setErrorMsg('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const saveProfile = async () => {
     setErrorMsg('');
+    setSaving(true);
     try {
       const res = await fetch('/api/admin/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profile) });
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        // Sidebar listens for this and refetches the avatar/email immediately.
+        window.dispatchEvent(new CustomEvent('profile-updated'));
+      }
       else { const err = await res.json().catch(() => ({})); setErrorMsg(err.error || 'Failed to update profile'); }
     } catch { setErrorMsg('Network error updating profile'); }
+    finally { setSaving(false); }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await saveProfile();
   };
 
   if (loading) return <div style={{ padding: 'clamp(16px, 4vw, 32px)', color: 'var(--text-primary)' }}>Loading profile...</div>;
@@ -101,8 +114,17 @@ export default function ProfilePage() {
               ) : '👤'}
             </div>
             <div style={{ flex: 1 }}>
-              <input name="avatar" value={profile.avatar} onChange={handleChange} placeholder="Image URL" style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg)', color: 'var(--text-primary)', marginBottom: '4px' }} />
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Paste image URL</p>
+              <MediaField
+                value={profile.avatar}
+                onChange={(v) => { setAvatarError(false); setProfile(prev => ({ ...prev, avatar: v })); setSaved(false); setErrorMsg(''); }}
+                placeholder="Image URL"
+                saveMode
+                onSave={saveProfile}
+                onCancel={() => { setAvatarError(false); setProfile(prev => ({ ...prev, avatar: '' })); setSaved(false); setErrorMsg(''); }}
+                saving={saving}
+                saved={saved}
+              />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>Choose from your media library, or paste an image URL.</p>
             </div>
           </div>
         </div>
@@ -133,8 +155,8 @@ export default function ProfilePage() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <button type="submit" style={{ padding: '12px 28px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}><FiSave size={16} /> Save Changes</button>
-          {saved && <span style={{ color: 'var(--accent-dim)', fontSize: '0.85rem' }}>Saved!</span>}
+          <button type="submit" disabled={saving} style={{ padding: '12px 28px', background: saving ? 'var(--text-tertiary)' : 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: saving ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}><FiSave size={16} /> {saving ? 'Saving...' : 'Save Changes'}</button>
+          {saved && <span style={{ color: 'var(--accent-dim)', fontSize: '0.85rem' }}>✓ Saved</span>}
           <button type="button" onClick={() => signOut()} style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-secondary)' }}>Sign Out</button>
         </div>
       </form>

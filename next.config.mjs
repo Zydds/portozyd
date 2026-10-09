@@ -4,8 +4,10 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' https: data:",
-  "media-src 'self'",
+  // blob: is the local object-URL used by the media page's upload preview pane.
+  "img-src 'self' https: data: blob:",
+  // blob: = admin upload-preview object URL; res.cloudinary.com = uploaded videos.
+  "media-src 'self' blob: https://res.cloudinary.com",
   "font-src 'self'",
   "connect-src 'self'",
   "object-src 'none'",
@@ -27,7 +29,7 @@ const nextConfig = {
     // over gracefully via each component's onError fallback.
     remotePatterns: [
       { protocol: 'https', hostname: 'cdn.simpleicons.org' },
-      { protocol: 'https', hostname: '*.res.cloudinary.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],

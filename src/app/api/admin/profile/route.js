@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
 import { apiErrorResponse } from '@/lib/api-error';
+import { registerExternalMedia } from '@/lib/media-register';
 
 // Users often paste bare domains ("github.com/Zydos"); safeUrl() returns null
 // for those, which silently wiped the field on save. Assume https:// first.
@@ -124,6 +125,8 @@ export async function PUT(request) {
     // Landing/topic pages render this profile under the root layout's ISR;
     // invalidate immediately so saves appear without waiting out revalidate=300.
     revalidatePath('/', 'layout');
+
+    if (avatar !== undefined) await registerExternalMedia(updatedUser.avatar);
 
     return NextResponse.json({ user: updatedUser });
   } catch (err) {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
 import { apiErrorResponse } from '@/lib/api-error';
+import { registerExternalMedia } from '@/lib/media-register';
 
 function pick(obj, keys) {
   if (!obj || typeof obj !== 'object') return {};
@@ -111,6 +112,7 @@ export async function POST(request) {
           order: typeof order === 'number' ? order : 0,
         },
       });
+      await registerExternalMedia(project.imageUrl);
       return NextResponse.json(project);
     }
     if (body.entity === 'experience' || (body.title && body.company && !body.name)) {
@@ -176,6 +178,7 @@ export async function PUT(request) {
           ...(order !== undefined && { order: Number(order) }),
         },
       });
+      if (imageUrl !== undefined) await registerExternalMedia(project.imageUrl);
       return NextResponse.json(project);
     }
     if (entity === 'experience') {
