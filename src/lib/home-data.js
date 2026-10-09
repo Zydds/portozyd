@@ -14,6 +14,15 @@ async function safe(promise, fallback) {
   }
 }
 
+// Single-key read for root-layout metadata (runs on every page render).
+export async function getSiteTitle() {
+  const row = await safe(
+    prisma.siteDetail.findUnique({ where: { key: 'site_title' }, select: { value: true } }),
+    null
+  );
+  return row?.value || 'ZYD — Quality Assurance & Web Development';
+}
+
 export async function getSharedData() {
   const [detailRows, user] = await Promise.all([
     safe(prisma.siteDetail.findMany({ select: { key: true, value: true } }), []),

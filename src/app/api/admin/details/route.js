@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { apiErrorResponse } from '@/lib/api-error';
@@ -41,6 +42,9 @@ export async function PUT(request) {
     );
 
     await Promise.all(updates);
+
+    // Landing is ISR (300s); refresh it now so copy edits are live immediately.
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true, message: 'Details updated successfully' });
   } catch (err) {

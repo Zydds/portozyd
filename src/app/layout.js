@@ -2,6 +2,7 @@ import { Spectral, IBM_Plex_Mono, Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import GrainOverlay from '@/components/GrainOverlay';
+import { getSiteTitle } from '@/lib/home-data';
 
 const spectral = Spectral({
   subsets: ['latin'],
@@ -9,6 +10,7 @@ const spectral = Spectral({
   style: ['italic'], // every Spectral usage on the site is italic
   variable: '--font-spectral',
   display: 'swap',
+  preload: false, // not preloaded → no unused-weight console warnings; loads on first use (swap)
 });
 
 const ibmMono = IBM_Plex_Mono({
@@ -16,6 +18,7 @@ const ibmMono = IBM_Plex_Mono({
   weight: ['400', '500'],
   variable: '--font-mono',
   display: 'swap',
+  preload: false, // same: Inter (preloaded) covers body text; Spectral/Mono swap in via @font-face
 });
 
 const inter = Inter({
@@ -25,22 +28,27 @@ const inter = Inter({
   display: 'swap',
 });
 
-export const metadata = {
-  title: 'ZYD — Quality Assurance & Web Development',
-  description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
-  openGraph: {
-    title: 'ZYD — Quality Assurance & Web Development',
-    description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
-    siteName: 'ZYD Portfolio',
-    type: 'website',
-    locale: 'en_US',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'ZYD — Quality Assurance & Web Development',
-    description: 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.',
-  },
-};
+const DESCRIPTION = 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev, Project Management.';
+
+export async function generateMetadata() {
+  const title = await getSiteTitle();
+  return {
+    title,
+    description: DESCRIPTION,
+    openGraph: {
+      title,
+      description: DESCRIPTION,
+      siteName: 'ZYD Portfolio',
+      type: 'website',
+      locale: 'en_US',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description: DESCRIPTION,
+    },
+  };
+}
 
 export default function RootLayout({ children }) {
   return (
