@@ -4,6 +4,7 @@ Loose ends deliberately deferred by the owner. Do not "fix" without asking.
 
 ## Pending rework
 - **Admin menu image** — owner wants to rework how the admin menu image works (design/mechanism TBD). Schedule after the current batch roadmap.
+- **Admin sidebar redesign (social-media style)** — owner wants the sidebar to show the admin avatar + "logged in as [email]". `User.avatar` is now settable via the media-library picker (uploaded to Cloudinary), so the data side is ready; actual sidebar restyle waits for the UI redesign batch.
 - **`public/flag/restricted.html` design is a prototype** — it is the live honeypot lure (proxy gate 302 target) and works as-is; owner will redesign later. Keep behavior when restyling.
 - **Honeypot cert images** — page references `public/certs/cert-1.jpg` / `cert-2.jpg` (graceful "coming soon" fallback until files exist).
 
