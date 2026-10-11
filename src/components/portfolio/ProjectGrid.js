@@ -3,7 +3,13 @@ import ProjectCard from '@/components/portfolio/ProjectCard';
 // Card grid + section heading, shared by /portfolio and /portfolio/[category].
 export default function ProjectGrid({ projects = [], heading, countLabel }) {
   return (
-    <section style={{ marginBottom: '64px' }}>
+    <section
+      style={{
+        marginBottom: '64px',
+        borderTop: '1px solid var(--border)',
+        paddingTop: '40px',
+      }}
+    >
       <div
         style={{
           display: 'flex',
