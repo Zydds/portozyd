@@ -1,4 +1,5 @@
 import { Spectral, IBM_Plex_Mono, Inter } from 'next/font/google';
+import { connection } from 'next/server';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import GrainOverlay from '@/components/GrainOverlay';
@@ -50,7 +51,11 @@ export async function generateMetadata() {
   };
 }
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Nonce-based CSP (src/proxy.js) can only stamp nonces into pages rendered
+  // per request; this opts every route under the root layout out of
+  // prerendering/ISR (docs: content-security-policy.md).
+  await connection();
   return (
     <html lang="en" className={`${spectral.variable} ${ibmMono.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>

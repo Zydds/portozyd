@@ -6,6 +6,54 @@ const MUTATION_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const GATE_COOKIE = 'admin_gate';
 
 // ---------------------------------------------------------------------------
+// Nonce CSP. A fresh nonce is minted per request and passed to the renderer
+// through the request headers, so Next.js stamps it onto its framework and
+// inline scripts automatically (see
+// node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md).
+// Nonces require dynamic rendering, so every HTML route opts into
+// request-time rendering via connection() in the root layout.
+//
+// script-src keeps 'self' but drops 'strict-dynamic': same-origin
+// parser-inserted scripts (the static honeypot page, Vercel's injected
+// scripts) must stay allowed via 'self', and there are no JSONP or
+// user-controlled script sinks on this origin for that allowlist to
+// endanger. style-src keeps 'unsafe-inline' because React renders style
+// attributes (topic section grids, admin previews) that nonces cannot cover;
+// the scanner finding was scoped to script-src.
+// ---------------------------------------------------------------------------
+function buildCsp(nonce) {
+  const isDev = process.env.NODE_ENV !== 'production';
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline'",
+    // blob: is the local object-URL used by the media page's upload preview pane.
+    "img-src 'self' https: data: blob:",
+    // blob: = admin upload-preview object URL; res.cloudinary.com = uploaded videos.
+    "media-src 'self' blob: https://res.cloudinary.com",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    ...(isDev ? [] : ['upgrade-insecure-requests']),
+  ].join('; ');
+}
+
+// Page/API response: hand the nonce + CSP to the renderer via the request
+// headers (Next.js extracts 'nonce-...' from the CSP during rendering) and
+// mirror the policy on the response itself.
+function cspNext(req, nonce, csp) {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
+  res.headers.set('Content-Security-Policy', csp);
+  return res;
+}
+
+// ---------------------------------------------------------------------------
 // Admin IP gate (fail-closed): only ADMIN_ALLOWED_IPS (exact match) or a valid
 // ?k=ADMIN_DEVICE_TOKEN grant access. Unknown client IP = denied. Every denial
 // (bot, human, or fail-closed) is lured to the one honeypot page with a 302;
@@ -137,33 +185,45 @@ function isSameOrigin(req) {
 export default auth((req, event) => {
   const path = req.nextUrl.pathname;
 
-  const gate = enforceIpGate(req);
-  if (gate.deny) {
-    recordProbe(req, gate.action, gate.status, event);
-    return gate.deny;
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const csp = buildCsp(nonce);
+
+  const isAdminPage = path === '/admin' || path.startsWith('/admin/');
+  const isAdminApi = path === '/api/admin' || path.startsWith('/api/admin/');
+
+  if (isAdminPage || isAdminApi) {
+    const gate = enforceIpGate(req);
+    if (gate.deny) {
+      recordProbe(req, gate.action, gate.status, event);
+      return gate.deny;
+    }
+
+    if (path.startsWith('/api/admin/') && MUTATION_METHODS.includes(req.method) && !isSameOrigin(req)) {
+      // Cross-origin mutation attempt: lured to the honeypot (logged as origin).
+      recordProbe(req, 'origin', 302, event);
+      return honeypotRedirect(req);
+    }
+
+    const isLoggedIn = !!req.auth;
+    const isLoginPage = path === '/admin/login';
+
+    if (isAdminPage && !isLoginPage && !isLoggedIn) {
+      return withGateCookie(NextResponse.redirect(new URL('/admin/login', req.nextUrl)), gate.tokenCookie);
+    }
+
+    if (isLoginPage && isLoggedIn) {
+      return withGateCookie(NextResponse.redirect(new URL('/admin', req.nextUrl)), gate.tokenCookie);
+    }
+
+    return withGateCookie(cspNext(req, nonce, csp), gate.tokenCookie);
   }
 
-  if (path.startsWith('/api/admin/') && MUTATION_METHODS.includes(req.method) && !isSameOrigin(req)) {
-    // Cross-origin mutation attempt: lured to the honeypot (logged as origin).
-    recordProbe(req, 'origin', 302, event);
-    return honeypotRedirect(req);
-  }
-
-  const isLoggedIn = !!req.auth;
-  const isTargetingAdmin = path.startsWith('/admin');
-  const isLoginPage = path === '/admin/login';
-
-  if (isTargetingAdmin && !isLoginPage && !isLoggedIn) {
-    return withGateCookie(NextResponse.redirect(new URL('/admin/login', req.nextUrl)), gate.tokenCookie);
-  }
-
-  if (isLoginPage && isLoggedIn) {
-    return withGateCookie(NextResponse.redirect(new URL('/admin', req.nextUrl)), gate.tokenCookie);
-  }
-
-  return withGateCookie(NextResponse.next(), gate.tokenCookie);
+  return cspNext(req, nonce, csp);
 });
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  // Everything except big static assets. Deliberately NO `missing: prefetch`
+  // conditions: a client-supplied Purpose/next-router-prefetch header must
+  // never be able to skip the proxy and its admin gate.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|videos/).*)'],
 };

@@ -2,8 +2,6 @@ import TopicLayout from '@/app/topic-layout';
 import ProjectGrid from '@/components/portfolio/ProjectGrid';
 import { getAllProjects } from '@/lib/home-data';
 
-export const revalidate = 300; // ISR: portfolio refreshes every 5 min
-
 export const metadata = {
   title: 'Portfolio — Zaidan Ghiffari Azhar',
   description: 'All projects across web development, quality assurance, and project management.',

@@ -2,8 +2,6 @@ import TopicPageLayout from '@/components/TopicPageLayout';
 import TopicLayout from '@/app/topic-layout';
 import { getTopicPage } from '@/lib/home-data';
 
-export const revalidate = 60; // ISR: shared layout data refreshes every 60s
-
 // Hardcoded fallbacks only apply when the DB row is missing (e.g. fresh env);
 // once the row exists, admin edits in /admin/topics/others drive this page.
 export default async function OthersPage() {

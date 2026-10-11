@@ -2,15 +2,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound, permanentRedirect } from 'next/navigation';
 import TopicLayout from '@/app/topic-layout';
-import { getAllProjects, getProjectDetail } from '@/lib/home-data';
+import { getProjectDetail } from '@/lib/home-data';
 import { CATEGORY_META, VALID_CATEGORIES } from '@/lib/portfolio-meta';
 
-export const revalidate = 300; // ISR: portfolio refreshes every 5 min
-
-export async function generateStaticParams() {
-  const projects = await getAllProjects();
-  return projects.map((p) => ({ category: p.category, slug: p.slug }));
-}
+// No generateStaticParams: prerendered HTML cannot carry per-request CSP
+// nonces, so project pages render on demand (root layout calls connection()).
+// Unknown or wrong-segment URLs are handled by notFound()/permanentRedirect below.
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;

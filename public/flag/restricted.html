@@ -101,11 +101,11 @@ footer{font-size:.85rem;color:var(--muted);margin-top:28px}
     <p>Basic cyber security certificates. Click an image to open the full size. Add your files to a <code>certs</code> folder next to this page.</p>
     <div class="certs">
       <figure class="cert">
-        <a href="certs/cert-1.jpg" target="_blank" rel="noopener"><img src="certs/cert-1.jpg" alt="Certificate 1" width="800" height="600" hidden onload="this.hidden=false;this.nextElementSibling.hidden=true"><div class="ph">Certificate image coming soon</div></a>
+        <a href="certs/cert-1.jpg" target="_blank" rel="noopener"><img src="certs/cert-1.jpg" alt="Certificate 1" width="800" height="600" hidden><div class="ph">Certificate image coming soon</div></a>
         <figcaption>Certificate name 1<span>Issuer, year</span></figcaption>
       </figure>
       <figure class="cert">
-        <a href="certs/cert-2.jpg" target="_blank" rel="noopener"><img src="certs/cert-2.jpg" alt="Certificate 2" width="800" height="600" hidden onload="this.hidden=false;this.nextElementSibling.hidden=true"><div class="ph">Certificate image coming soon</div></a>
+        <a href="certs/cert-2.jpg" target="_blank" rel="noopener"><img src="certs/cert-2.jpg" alt="Certificate 2" width="800" height="600" hidden><div class="ph">Certificate image coming soon</div></a>
         <figcaption>Certificate name 2<span>Issuer, year</span></figcaption>
       </figure>
     </div>
@@ -142,17 +142,6 @@ footer{font-size:.85rem;color:var(--muted);margin-top:28px}
 <footer>Zaidan Ghiffari Azhar. Ethical use only. No visitor data is shown to anyone on this page.</footer>
 </div>
 
-<script>
-(function(){
-  try{if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');}catch(e){}
-  var el=document.getElementById('log');
-  var t=new Date().toISOString().replace('T',' ').slice(0,19)+' UTC';
-  el.innerHTML=
-    '<b>time</b>     '+t+'\n'+
-    '<b>path</b>     '+location.pathname.replace(/[<>&]/g,'')+'\n'+
-    '<b>agent</b>    '+navigator.userAgent.replace(/[<>&]/g,'')+'\n'+
-    '<b>result</b>   redirected to honeypot';
-})();
-</script>
+<script src="/flag/restricted.js"></script>
 </body>
 </html>

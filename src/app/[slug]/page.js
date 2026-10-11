@@ -4,21 +4,12 @@ import { prisma } from '@/lib/prisma';
 import TopicPageLayout from '@/components/TopicPageLayout';
 import TopicLayout from '@/app/topic-layout';
 
-export const revalidate = 60; // ISR revalidation every 60s
-
 // Shared between generateMetadata and the page (one query per render).
 const getTopic = cache(async (slug) => prisma.topicPage.findUnique({ where: { slug } }));
 
-export async function generateStaticParams() {
-  try {
-    const pages = await prisma.topicPage.findMany({
-      select: { slug: true },
-    });
-    return pages.map((page) => ({ slug: page.slug }));
-  } catch (e) {
-    return [];
-  }
-}
+// No generateStaticParams: prerendered HTML cannot carry per-request CSP
+// nonces, so this route renders on demand (root layout calls connection()).
+// Unknown slugs are handled by notFound() below.
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;

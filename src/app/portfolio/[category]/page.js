@@ -3,13 +3,11 @@ import TopicLayout from '@/app/topic-layout';
 import TopicPageLayout from '@/components/TopicPageLayout';
 import ProjectGrid from '@/components/portfolio/ProjectGrid';
 import { getProjectsByCategory, getTopicPage } from '@/lib/home-data';
-import { CATEGORY_META, VALID_CATEGORIES } from '@/lib/portfolio-meta';
+import { CATEGORY_META } from '@/lib/portfolio-meta';
 
-export const revalidate = 300; // ISR: portfolio refreshes every 5 min
-
-export async function generateStaticParams() {
-  return VALID_CATEGORIES.map((category) => ({ category }));
-}
+// No generateStaticParams: prerendered HTML cannot carry per-request CSP
+// nonces, so categories render on demand (root layout calls connection());
+// unknown ones hit notFound() in the page below.
 
 export async function generateMetadata({ params }) {
   const { category } = await params;
