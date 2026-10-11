@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function PortfolioSection({ projects = [], details = {} }) {
   const sectionTitle = details.portfolio_title || 'Portfolio';
@@ -172,6 +173,30 @@ export default function PortfolioSection({ projects = [], details = {} }) {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {totalCount > 0 && (
+          <div style={{ marginTop: '28px', display: 'flex', justifyContent: 'center' }}>
+            <Link
+              href="/portfolio"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.78rem',
+                letterSpacing: '0.04em',
+                color: 'var(--accent-dim)',
+                textDecoration: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '9px 18px',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              View all {totalCount} projects →
+            </Link>
           </div>
         )}
       </div>

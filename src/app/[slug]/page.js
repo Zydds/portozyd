@@ -62,6 +62,7 @@ export default async function DynamicTopicPage({ params }) {
         icon={page.icon}
         title={page.title}
         intro={page.intro}
+        sections={page.sections || []}
         focusTitle="🎯 Key Focus & Philosophy"
         focusItems={page.focusItems || []}
         toolsTitle="🛠️ Tools & Technologies"

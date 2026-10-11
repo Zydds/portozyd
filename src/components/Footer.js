@@ -2,21 +2,19 @@
 
 import Link from 'next/link';
 import { RiGithubLine, RiLinkedinLine, RiMailLine, RiFacebookLine, RiInstagramLine, RiTwitterXLine, RiTelegramLine, RiDiscordLine } from 'react-icons/ri';
+import { portfolioLinks, hobbiesLinks } from '@/lib/portfolio-meta';
 
 const quickLinks = [
   { label: 'Home', href: '#home' },
   { label: 'About', href: '#about' },
   { label: 'Skills', href: '#skills' },
-  { label: 'Portfolio', href: '#portfolio' },
+  { label: 'Portfolio', href: '/portfolio' },
   { label: 'Contact', href: '#contact' },
 ];
 
 const exploreLinks = [
-  { label: 'Quality Assurance', href: '/qa' },
-  { label: 'Web Development', href: '/webdev' },
-  { label: 'Project Management', href: '/pm' },
-  { label: 'Gaming', href: '/gaming' },
-  { label: 'Others', href: '/others' },
+  ...portfolioLinks.filter((l) => l.href !== '/portfolio'),
+  ...hobbiesLinks,
 ];
 
 const linkStyle = {

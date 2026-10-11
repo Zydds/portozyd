@@ -56,12 +56,47 @@ export async function getSharedData() {
   return { details, profile: user || {} };
 }
 
+// Same select as the public /api/projects handler (card-shaped fields only).
+const cardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  description: true,
+  imageUrl: true,
+  demoUrl: true,
+  githubUrl: true,
+  category: true,
+  featured: true,
+};
+
+const byOrder = [{ order: 'asc' }, { createdAt: 'desc' }];
+
+export async function getAllProjects() {
+  return safe(prisma.project.findMany({ orderBy: byOrder, select: cardSelect }), []);
+}
+
+export async function getProjectsByCategory(category) {
+  return safe(
+    prisma.project.findMany({ where: { category }, orderBy: byOrder, select: cardSelect }),
+    []
+  );
+}
+
+// Full row incl. `content` — for the project detail page.
+export async function getProjectDetail(slug) {
+  return safe(prisma.project.findUnique({ where: { slug } }), null);
+}
+
+export async function getTopicPage(slug) {
+  return safe(prisma.topicPage.findUnique({ where: { slug } }), null);
+}
+
 export async function getHomeData() {
   const [shared, experiences, skills, projects] = await Promise.all([
     getSharedData(),
     safe(
       prisma.experience.findMany({
-        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+        orderBy: byOrder,
         select: { id: true, title: true, company: true, location: true, startDate: true, endDate: true, isCurrent: true, description: true, tags: true },
       }),
       []
@@ -70,13 +105,7 @@ export async function getHomeData() {
       prisma.skill.findMany({ orderBy: { order: 'asc' }, select: { id: true, name: true, category: true, iconKey: true, color: true } }),
       []
     ),
-    safe(
-      prisma.project.findMany({
-        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-        select: { id: true, slug: true, title: true, description: true, imageUrl: true, demoUrl: true, githubUrl: true, category: true, featured: true },
-      }),
-      []
-    ),
+    getAllProjects(),
   ]);
 
   return { ...shared, experiences, skills, projects };

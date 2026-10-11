@@ -5,20 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RiArrowDownSLine, RiSunLine, RiMoonLine, RiMenuLine, RiCloseLine } from 'react-icons/ri';
 import { useTheme } from '@/components/ThemeProvider';
-
-const portfolioLinks = [
-  { label: 'All Projects', href: '#portfolio' },
-  { label: 'Web Development', href: '#portfolio-web' },
-  { label: 'QA Testing', href: '#portfolio-qa' },
-];
-
-const hobbiesLinks = [
-  { label: 'Quality Assurance', href: '/qa' },
-  { label: 'Web Development', href: '/webdev' },
-  { label: 'Project Management', href: '/pm' },
-  { label: 'Gaming', href: '/gaming' },
-  { label: 'Others', href: '/others' },
-];
+import { portfolioLinks, hobbiesLinks } from '@/lib/portfolio-meta';
 
 function Dropdown({ label, items }) {
   const [open, setOpen] = useState(false);

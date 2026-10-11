@@ -74,6 +74,8 @@ model TopicPage {
   focusItems String[]
   toolsItems String[]
   highlights String[]
+  // Blog-style sections: [{ heading, body, mediaUrl }], rendered 75% text / 25% media.
+  sections   Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

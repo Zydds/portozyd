@@ -39,6 +39,14 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  async redirects() {
+    return [
+      // Old standalone topic pages folded into /portfolio/[category].
+      { source: '/qa', destination: '/portfolio/qa', permanent: true },
+      { source: '/webdev', destination: '/portfolio/web', permanent: true },
+      { source: '/pm', destination: '/portfolio/pm', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
