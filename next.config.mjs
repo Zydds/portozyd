@@ -41,6 +41,22 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Canonical domain: any request that still arrives on the old Vercel
+      // subdomain (e.g. bookmarks, old scanners hitting the honeypot) is
+      // permanently moved to the custom domain. Host-matched, so localhost
+      // and preview deployments are unaffected.
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'portozyd.vercel.app' }],
+        destination: 'https://zaidanghiffari.my.id/',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'portozyd.vercel.app' }],
+        destination: 'https://zaidanghiffari.my.id/:path*',
+        permanent: true,
+      },
       // Old standalone topic pages folded into /portfolio/[category].
       { source: '/qa', destination: '/portfolio/qa', permanent: true },
       { source: '/webdev', destination: '/portfolio/web', permanent: true },
