@@ -266,7 +266,7 @@ section { padding: clamp(48px, 7vw, 80px) 0; position: relative; z-index: 2; }
 .bar .meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-tertiary); white-space: nowrap; }
 
 /* ---- HERO ---- */
-.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; align-items: center; gap: clamp(28px, 6vw, 60px); min-height: 74vh; }
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; align-items: center; gap: clamp(28px, 6vw, 60px); min-height: 66vh; }
 h1 { font-family: var(--font-spectral); font-style: italic; font-weight: 500; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.1; margin: 0 0 16px; }
 .hero-role { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; max-width: 46ch; margin: 0 0 26px; }
 .hero-role span { color: var(--accent-dim); }

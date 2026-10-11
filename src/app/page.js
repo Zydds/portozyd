@@ -17,7 +17,7 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <main style={{ paddingTop: '64px' }}>
+      <main style={{ paddingTop: '24px' }}>
         <HeroSection details={details} profile={profile} />
         <div className="wrap"><div className="divider"></div></div>
         <Reveal><AboutSection details={details} /></Reveal>
