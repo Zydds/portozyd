@@ -7,7 +7,7 @@ import { FiUpload, FiUploadCloud, FiTrash2, FiCopy, FiCheck, FiExternalLink, FiI
 import { useConfirm } from '@/components/admin/ConfirmProvider';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 function formatSize(bytes) {
   return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(2)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -56,44 +56,79 @@ export default function MediaPage() {
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setMessage('File exceeds the 5MB limit');
+      setMessage('File exceeds the 50MB limit');
       return;
     }
     if (pendingFile) URL.revokeObjectURL(pendingFile.previewUrl);
     setPendingFile({ file, previewUrl: URL.createObjectURL(file) });
   };
 
-  const handleUpload = () => {
+  // Direct browser -> Cloudinary upload (signed server-side): the file never
+  // passes through the Vercel function, so the 4.5MB body cap doesn't apply.
+  const handleUpload = async () => {
     if (!pendingFile || uploading) return;
     setUploading(true);
     setProgress(0);
+    setMessage('');
+    const { file } = pendingFile;
+    try {
+      const signRes = await fetch('/api/admin/media/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, mimeType: file.type, size: file.size }),
+      });
+      const sign = await signRes.json().catch(() => ({}));
+      if (!signRes.ok) throw new Error(sign.error || 'Could not start upload');
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/admin/media');
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => {
-      setUploading(false);
-      setProgress(0);
-      if (xhr.status >= 200 && xhr.status < 300) {
-        clearPendingFile();
-        fetchMedia();
-      } else {
-        let msg = 'Upload failed';
-        try { msg = JSON.parse(xhr.responseText).error || msg; } catch { /* keep default */ }
-        setMessage(msg);
+      const uploaded = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', sign.uploadUrl);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+          let json = null;
+          try { json = JSON.parse(xhr.responseText); } catch { /* non-JSON error */ }
+          if (xhr.status >= 200 && xhr.status < 300 && json?.secure_url) resolve(json);
+          else reject(new Error(json?.error?.message || `Upload failed (${xhr.status})`));
+        };
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('api_key', sign.apiKey);
+        fd.append('timestamp', String(sign.timestamp));
+        fd.append('signature', sign.signature);
+        fd.append('public_id', sign.publicId);
+        if (sign.transformation) fd.append('transformation', sign.transformation);
+        xhr.send(fd);
+      });
+
+      const saveRes = await fetch('/api/admin/media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name || 'upload',
+          url: uploaded.secure_url,
+          publicId: uploaded.public_id,
+          mimeType: file.type,
+          size: uploaded.bytes ?? file.size,
+          width: uploaded.width ?? null,
+          height: uploaded.height ?? null,
+          source: 'upload',
+        }),
+      });
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}));
+        throw new Error(err.error || 'Upload reached storage but failed to save');
       }
-    };
-    xhr.onerror = () => {
+      clearPendingFile();
+      fetchMedia();
+    } catch (err) {
+      setMessage(err?.message || 'Upload failed');
+    } finally {
       setUploading(false);
       setProgress(0);
-      setMessage('Network error');
-    };
-
-    const fd = new FormData();
-    fd.append('file', pendingFile.file);
-    xhr.send(fd);
+    }
   };
 
   const handleAddMedia = async (e) => {
@@ -164,7 +199,7 @@ export default function MediaPage() {
             )}
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pendingFile.file.name}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatSize(pendingFile.file.size)} · compressed on upload</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatSize(pendingFile.file.size)} · {pendingFile.file.type.startsWith('video/') ? 'direct to storage' : 'compressed on upload'}</div>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={handleUpload} disabled={uploading} style={{ padding: '10px 22px', background: uploading ? 'var(--text-tertiary)' : 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: uploading ? 'default' : 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -202,7 +237,7 @@ export default function MediaPage() {
         >
           <FiUploadCloud size={28} style={{ color: dragOver ? 'var(--accent)' : 'var(--text-tertiary)' }} />
           <span style={{ fontSize: '0.9375rem' }}>Drag &amp; drop an image or video here, or <span style={{ color: 'var(--accent)', textDecoration: 'underline' }}>browse</span></span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>JPEG, PNG, WebP, or MP4 · max 5MB · compressed automatically</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>JPEG, PNG, WebP, or MP4 · up to 50MB · images compressed automatically</span>
         </div>
       )}
 

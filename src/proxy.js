@@ -35,7 +35,8 @@ function buildCsp(nonce) {
     // blob: = admin upload-preview object URL; res.cloudinary.com = uploaded videos.
     "media-src 'self' blob: https://res.cloudinary.com",
     "font-src 'self'",
-    "connect-src 'self'",
+    // api.cloudinary.com = signed direct uploads from the admin media page.
+    "connect-src 'self' https://api.cloudinary.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

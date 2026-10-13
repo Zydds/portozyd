@@ -3,10 +3,17 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { safeUrl } from '@/lib/safe-url';
 import { apiErrorResponse } from '@/lib/api-error';
-import { uploadImage, destroyImage } from '@/lib/cloudinary';
+import { destroyImage } from '@/lib/cloudinary';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB — compression happens on Cloudinary after this
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4'];
+// File uploads go browser -> Cloudinary directly (signed by /api/admin/media/sign);
+// this route only stores the resulting metadata row, so no body-size issues here.
+const MAX_DIRECT_SIZE = 50 * 1024 * 1024;
+
+function toIntOrNull(value) {
+  if (value == null) return null;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
 
 export async function GET() {
   try {
@@ -58,50 +65,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const contentType = request.headers.get('content-type') || '';
-
-    if (contentType.includes('multipart/form-data')) {
-      const form = await request.formData();
-      const file = form.get('file');
-
-      if (!file || typeof file === 'string') {
-        return NextResponse.json({ error: 'File is required' }, { status: 400 });
-      }
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        return NextResponse.json(
-          { error: 'Unsupported file type. Use JPEG, PNG, WebP, or MP4.' },
-          { status: 400 }
-        );
-      }
-      if (file.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { error: 'File exceeds the 5MB limit' },
-          { status: 400 }
-        );
-      }
-
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const dataUri = `data:${file.type};base64,${buffer.toString('base64')}`;
-      const uploaded = await uploadImage(dataUri, { video: file.type.startsWith('video/') });
-
-      const newMedia = await prisma.media.create({
-        data: {
-          filename: file.name || 'upload',
-          url: uploaded.secure_url,
-          publicId: uploaded.public_id,
-          mimeType: file.type,
-          size: uploaded.bytes ?? file.size,
-          source: 'upload',
-          width: uploaded.width ?? null,
-          height: uploaded.height ?? null,
-        },
-      });
-
-      return NextResponse.json({ media: newMedia });
-    }
-
     const body = await request.json();
-    const { filename, url, publicId, mimeType, size } = body;
+    const { filename, url, publicId, mimeType, size, width, height, source } = body;
 
     if (!filename) {
       return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
@@ -114,14 +79,25 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
 
+    const isDirectUpload = source === 'upload';
+    if (isDirectUpload && !publicId) {
+      return NextResponse.json({ error: 'publicId is required for uploads' }, { status: 400 });
+    }
+    const sizeBytes = toIntOrNull(size);
+    if (sizeBytes != null && (sizeBytes < 0 || sizeBytes > MAX_DIRECT_SIZE)) {
+      return NextResponse.json({ error: 'File exceeds the 50MB limit' }, { status: 400 });
+    }
+
     const newMedia = await prisma.media.create({
       data: {
         filename,
         url: safeMediaUrl,
         publicId: publicId || `manual_${Date.now()}`,
         mimeType: mimeType || 'image/jpeg',
-        size: size ? parseInt(size, 10) : null,
-        source: 'link',
+        size: sizeBytes,
+        source: isDirectUpload ? 'upload' : 'link',
+        width: toIntOrNull(width),
+        height: toIntOrNull(height),
       },
     });
 

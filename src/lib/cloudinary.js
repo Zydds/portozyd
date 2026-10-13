@@ -13,18 +13,8 @@ function ensureConfigured() {
   configured = true;
 }
 
-// Stores the asset already compressed: q_auto:good (near-invisible quality loss)
-// and never upscaled beyond 1600px wide.
-export async function uploadImage(dataUri, { video = false } = {}) {
-  ensureConfigured();
-  return cloudinary.uploader.upload(dataUri, {
-    overwrite: false,
-    resource_type: video ? 'video' : 'image',
-    // Image-only transform; videos go through Cloudinary's video pipeline as-is.
-    ...(video ? {} : { transformation: [{ quality: 'auto:good', width: 1600, crop: 'limit' }] }),
-  });
-}
-
+// Uploads are signed direct browser -> Cloudinary transfers (see
+// /api/admin/media/sign); the server only ever destroys assets.
 export async function destroyImage(publicId, resourceType = 'image') {
   ensureConfigured();
   const res = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
