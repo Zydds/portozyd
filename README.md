@@ -53,7 +53,7 @@ npx prisma db push   # apply schema.prisma to Neon (ALWAYS this, never migrate)
 |---|---|
 | `DATABASE_URL` | Neon Postgres connection string (use the pooled `-pooler` endpoint) |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | NextAuth config |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Cloudinary uploads/destroy |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Cloudinary uploads/destroy |
 | `RESEND_API_KEY` | Contact-form email delivery |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Seeded admin login (also used as mail fallback) |
 | `ADMIN_ALLOWED_IPS` | Comma-separated IPs allowed to reach `/admin*` (fail-closed gate) |
