@@ -1,5 +1,6 @@
 import { Spectral, IBM_Plex_Mono, Inter } from 'next/font/google';
 import { connection } from 'next/server';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import GrainOverlay from '@/components/GrainOverlay';
@@ -34,6 +35,7 @@ const DESCRIPTION = 'Personal portfolio of Zaidan Ghiffari Azhar — QA, Web Dev
 export async function generateMetadata() {
   const title = await getSiteTitle();
   return {
+    metadataBase: new URL('https://www.zaidanghiffari.my.id'),
     title,
     description: DESCRIPTION,
     openGraph: {
@@ -44,7 +46,7 @@ export async function generateMetadata() {
       locale: 'en_US',
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description: DESCRIPTION,
     },
@@ -63,6 +65,7 @@ export default async function RootLayout({ children }) {
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );

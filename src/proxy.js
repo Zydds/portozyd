@@ -25,7 +25,10 @@ function buildCsp(nonce) {
   const isDev = process.env.NODE_ENV !== 'production';
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''}`,
+    // Dev-only extras: 'unsafe-eval' = React debugging (see Next CSP docs);
+    // va.vercel-scripts.com = Speed Insights debug script (prod uses the
+    // same-origin /_vercel/speed-insights/script.js and needs neither).
+    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     // blob: is the local object-URL used by the media page's upload preview pane.
     "img-src 'self' https: data: blob:",
