@@ -356,6 +356,8 @@ blockquote { margin: 0 0 16px; padding: 2px 0 2px 16px; border-left: 2px solid v
 .topic-section-body p:last-child { margin-bottom: 0; }
 .topic-section-media { position: sticky; top: 88px; }
 .topic-section-media img, .topic-section-media video { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+/* Section videos are ambient loops: fixed 4:3 band, crop-filled, not interactive. */
+.topic-section-media video { aspect-ratio: 4 / 3; object-fit: cover; pointer-events: none; }
 /* Legacy fallback blocks reuse the section rhythm + separators. */
 .topic-legacy { margin-bottom: 72px; }
 .topic-legacy-block { padding: 32px 0; border-bottom: 1px solid var(--border); }
