@@ -127,7 +127,7 @@ export default function TopicPageLayout({
               <article
                 key={i}
                 className={`topic-section${mediaUrl ? '' : ' topic-section--nomedia'}`}
-                style={mediaUrl ? { gridTemplateColumns: cols } : undefined}
+                style={mediaUrl ? { '--section-cols': cols } : undefined}
               >
                 {heading && <h2 className="topic-section-heading">{heading}</h2>}
                 {mediaUrl && mediaLeft ? media : text}
