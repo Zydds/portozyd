@@ -44,6 +44,13 @@ const nextConfig = {
       { source: '/pm', destination: '/portfolio/pm', permanent: true },
     ];
   },
+  async rewrites() {
+    return [
+      // DB-backed honeypot (route handler). afterFiles semantics: checked
+      // after public/, so the legacy static file must stay deleted.
+      { source: '/flag/restricted.html', destination: '/flag/restricted' },
+    ];
+  },
   async headers() {
     return [
       {
